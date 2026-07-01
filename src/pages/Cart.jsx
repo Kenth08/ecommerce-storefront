@@ -1,8 +1,9 @@
 import { useCart } from '../context/CartContext'
 
 export default function Cart() {
-  const { items, removeFromCart } = useCart()
+  const { items, removeFromCart, increaseQuantity, decreaseQuantity } = useCart()
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+
 
   if (items.length === 0) {
     return <p className="p-8 text-center text-gray-600">Your cart is empty.</p>
@@ -21,9 +22,23 @@ export default function Cart() {
               <img src={item.image} alt={item.name} className="h-16 w-16 rounded object-cover" />
               <div>
                 <p className="font-medium">{item.name}</p>
-                <p className="text-sm text-gray-600">
-                  Qty: {item.quantity} × ${item.price}
-                </p>
+                                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <button
+                    onClick={() => decreaseQuantity(item.id)}
+                    className="h-6 w-6 rounded border border-gray-300 hover:bg-gray-100"
+                  >
+                    −
+                  </button>
+                  <span>{item.quantity}</span>
+                  <button
+                    onClick={() => increaseQuantity(item.id)}
+                    className="h-6 w-6 rounded border border-gray-300 hover:bg-gray-100"
+                  >
+                    +
+                  </button>
+                  <span className="ml-2">× ${item.price}</span>
+                </div>
+
               </div>
             </div>
             <button
