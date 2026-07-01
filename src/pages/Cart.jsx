@@ -4,7 +4,6 @@ export default function Cart() {
   const { items, removeFromCart, increaseQuantity, decreaseQuantity } = useCart()
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
 
-
   if (items.length === 0) {
     return <p className="p-8 text-center text-gray-600">Your cart is empty.</p>
   }
@@ -15,34 +14,34 @@ export default function Cart() {
       <div className="flex flex-col gap-4">
         {items.map((item) => (
           <div
-            key={item.id}
+            key={item.variantId}
             className="flex items-center justify-between border-b border-gray-200 pb-4"
           >
             <div className="flex items-center gap-4">
               <img src={item.image} alt={item.name} className="h-16 w-16 rounded object-cover" />
               <div>
                 <p className="font-medium">{item.name}</p>
-                                <div className="flex items-center gap-2 text-sm text-gray-600">
+                <p className="text-xs text-gray-500">{item.size} / {item.color}</p>
+                <div className="mt-1 flex items-center gap-2 text-sm text-gray-600">
                   <button
-                    onClick={() => decreaseQuantity(item.id)}
+                    onClick={() => decreaseQuantity(item.variantId)}
                     className="h-6 w-6 rounded border border-gray-300 hover:bg-gray-100"
                   >
                     −
                   </button>
                   <span>{item.quantity}</span>
                   <button
-                    onClick={() => increaseQuantity(item.id)}
+                    onClick={() => increaseQuantity(item.variantId)}
                     className="h-6 w-6 rounded border border-gray-300 hover:bg-gray-100"
                   >
                     +
                   </button>
                   <span className="ml-2">× ${item.price}</span>
                 </div>
-
               </div>
             </div>
             <button
-              onClick={() => removeFromCart(item.id)}
+              onClick={() => removeFromCart(item.variantId)}
               className="text-sm text-red-600 hover:underline"
             >
               Remove
