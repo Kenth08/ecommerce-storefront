@@ -6,7 +6,10 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Footer from './components/Footer'
 import ProductDetail from './pages/ProductDetail'
+import ErrorBoundary from './components/ErrorBoundary'
 import { Toaster } from 'react-hot-toast'
+import NotFound from './pages/NotFound'
+
 
 
 
@@ -16,15 +19,17 @@ function App() {
       <Toaster />
 
       <Navbar />
+      <ErrorBoundary>
       <Routes>
         <Route path="/register" element={<Register />} />
         <Route path="/" element={<Home />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/login" element={<Login />} />
         <Route path="/product/:slug" element={<ProductDetail />} />
-
+        <Route path="*" element={<NotFound />} />
 
       </Routes>
+      </ErrorBoundary>
       <Footer />
     </>
   )
