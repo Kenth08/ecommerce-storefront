@@ -3,8 +3,10 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 import logoIcon from '../assets/logo-icon.png'
+import useDocumentTitle from '../hooks/useDocumentTitle'
 
 export default function Login() {
+  useDocumentTitle('Login')
   const { login } = useAuth()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
@@ -21,7 +23,7 @@ export default function Login() {
       await login(email, password)
       toast.success('Logged in successfully!')
       navigate('/')
-    } catch (err) {
+    } catch {
       toast.error('Invalid email or password.')
       setError('Invalid email or password.')
     } finally {
@@ -97,8 +99,6 @@ export default function Login() {
                 )}
               </button>
             </div>
-
-
 
             {error && <p className="text-sm text-red-600">{error}</p>}
 

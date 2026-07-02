@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import { getProduct } from '../api/products'
 import { useCart } from '../context/CartContext'
 import { getPrimaryImage, getActiveVariants } from '../utils/productHelpers'
+import useDocumentTitle from '../hooks/useDocumentTitle'
 
 export default function ProductDetail() {
   const { slug } = useParams()
@@ -14,6 +16,8 @@ export default function ProductDetail() {
   const [selectedColor, setSelectedColor] = useState(null)
   const [added, setAdded] = useState(false)
 
+  useDocumentTitle(product?.name)
+
   useEffect(() => {
     getProduct(slug)
       .then(setProduct)
@@ -21,7 +25,24 @@ export default function ProductDetail() {
       .finally(() => setLoading(false))
   }, [slug])
 
-  if (loading) return <p className="p-8 text-center text-gray-600">Loading...</p>
+  if (loading) {
+    return (
+      <div className="mx-auto flex max-w-4xl flex-col gap-6 p-4 sm:flex-row sm:gap-10 sm:p-8">
+        <div className="aspect-square w-full animate-pulse rounded-lg bg-gray-200 sm:w-1/2" />
+        <div className="flex flex-1 flex-col gap-4">
+          <div className="h-8 w-3/4 animate-pulse rounded bg-gray-200" />
+          <div className="h-6 w-1/3 animate-pulse rounded bg-gray-200" />
+          <div className="mt-2 h-4 w-1/4 animate-pulse rounded bg-gray-200" />
+          <div className="flex gap-2">
+            <div className="h-9 w-14 animate-pulse rounded bg-gray-200" />
+            <div className="h-9 w-14 animate-pulse rounded bg-gray-200" />
+            <div className="h-9 w-14 animate-pulse rounded bg-gray-200" />
+          </div>
+          <div className="mt-4 h-12 w-full animate-pulse rounded-md bg-gray-200 sm:w-40" />
+        </div>
+      </div>
+    )
+  }
 
   if (error || !product) {
     return (
@@ -46,6 +67,7 @@ export default function ProductDetail() {
   function handleAddToCart() {
     if (!selectedVariant) return
     addToCart(product, selectedVariant)
+    toast.success(`${product.name} added to cart`)
     setAdded(true)
     setTimeout(() => setAdded(false), 1500)
   }
@@ -108,7 +130,9 @@ export default function ProductDetail() {
         <button
           onClick={handleAddToCart}
           disabled={!selectedVariant || selectedVariant.stock === 0}
-          className="mt-4 w-full rounded-md bg-orange-500 px-6 py-3 text-white transition-colors hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-40 sm:w-fit"
+          className={`mt-4 w-full rounded-md px-6 py-3 font-medium text-white transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40 sm:w-fit ${
+            added ? 'scale-105 bg-green-600' : 'bg-orange-500 hover:bg-orange-600'
+          }`}
         >
           {added ? 'Added ✓' : 'Add to Cart'}
         </button>

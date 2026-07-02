@@ -1,5 +1,17 @@
 @import "tailwindcss";
 
+@theme {
+  --animate-shake: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(-14deg); }
+  40% { transform: rotate(11deg); }
+  60% { transform: rotate(-7deg); }
+  80% { transform: rotate(4deg); }
+}
+
 body {
   margin: 0;
   font-family: 'Inter', system-ui, sans-serif;
