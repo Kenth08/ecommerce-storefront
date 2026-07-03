@@ -171,6 +171,12 @@ export default function ProductDetail() {
           <p className="text-sm leading-relaxed text-gray-600">{product.description}</p>
         )}
 
+        {activeVariants.length === 0 ? (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            This product is currently unavailable — no sizes or colors have been added yet. Please check back soon.
+          </div>
+        ) : (
+          <>
         <div>
           <p className="text-sm font-medium">Size</p>
           <div className="mt-1 flex gap-2">
@@ -247,6 +253,8 @@ export default function ProductDetail() {
         >
           {added ? 'Added ✓' : 'Add to Cart'}
         </button>
+          </>
+        )}
       </div>
       </div>
     </div>
