@@ -23,8 +23,16 @@ function App() {
       <Toaster />
       <ScrollToTop />
 
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-orange-500 focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-white"
+      >
+        Skip to main content
+      </a>
+
       <Navbar />
       <ErrorBoundary>
+      <main id="main-content" tabIndex={-1} className="flex-1">
       <Routes>
         <Route path="/register" element={<Register />} />
         <Route path="/" element={<Home />} />
@@ -43,6 +51,7 @@ function App() {
         <Route path="*" element={<NotFound />} />
 
       </Routes>
+      </main>
       </ErrorBoundary>
       <Footer />
     </>

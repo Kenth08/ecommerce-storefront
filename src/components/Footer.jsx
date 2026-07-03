@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 export default function Footer() {
   return (
     <footer className="mt-auto bg-slate-900 text-gray-300 px-4 py-8 sm:px-8">
@@ -12,13 +14,15 @@ export default function Footer() {
         <div className="flex gap-8 text-sm">
           <div className="flex flex-col gap-2">
             <span className="font-medium text-white">Shop</span>
-            <a href="/" className="hover:text-orange-400">Home</a>
-            <a href="/cart" className="hover:text-orange-400">Cart</a>
+            <Link to="/" className="hover:text-orange-400">Home</Link>
+            <Link to="/shop" className="hover:text-orange-400">Products</Link>
+            <Link to="/cart" className="hover:text-orange-400">Cart</Link>
           </div>
           <div className="flex flex-col gap-2">
             <span className="font-medium text-white">Account</span>
-            <a href="/login" className="hover:text-orange-400">Login</a>
-            <a href="/register" className="hover:text-orange-400">Register</a>
+            <Link to="/login" className="hover:text-orange-400">Login</Link>
+            <Link to="/register" className="hover:text-orange-400">Register</Link>
+            <Link to="/wishlist" className="hover:text-orange-400">Wishlist</Link>
           </div>
         </div>
       </div>
