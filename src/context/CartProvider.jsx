@@ -16,13 +16,13 @@ export function CartProvider({ children }) {
     localStorage.setItem('cart', JSON.stringify(items))
   }, [items])
 
-  function addToCart(product, variant) {
+  function addToCart(product, variant, quantity = 1) {
     setItems((prev) => {
       const existing = prev.find((item) => item.variantId === variant.id)
       if (existing) {
         return prev.map((item) =>
           item.variantId === variant.id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { ...item, quantity: item.quantity + quantity }
             : item
         )
       }
@@ -37,7 +37,7 @@ export function CartProvider({ children }) {
           color: variant.color,
           price: Number(variant.price),
           image: getPrimaryImage(product),
-          quantity: 1,
+          quantity,
         },
       ]
     })

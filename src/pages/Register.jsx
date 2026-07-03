@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 import logoIcon from '../assets/logo-icon.png'
 import useDocumentTitle from '../hooks/useDocumentTitle'
+import { validateRegister } from '../utils/validation'
 
 export default function Register() {
   useDocumentTitle('Create Account')
@@ -15,17 +16,38 @@ export default function Register() {
   const [password2, setPassword2] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [showPassword2, setShowPassword2] = useState(false)
+  const [fieldErrors, setFieldErrors] = useState({})
   const [error, setError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
+
+  // Clear a field's inline error as soon as the user edits it.
+  function clearFieldError(field) {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev
+      const next = { ...prev }
+      delete next[field]
+      return next
+    })
+  }
+
+  // Base input styles, switched to a red state when the field has an error.
+  const inputClass = (field, extra = '') =>
+    `w-full rounded-lg border px-3 py-2 text-sm outline-none transition-colors focus:ring-2 ${extra} ${
+      fieldErrors[field]
+        ? 'border-red-400 focus:border-red-500 focus:ring-red-100'
+        : 'border-gray-300 focus:border-orange-500 focus:ring-orange-100'
+    }`
 
   async function handleSubmit(e) {
     e.preventDefault()
     setError(null)
 
-    if (password !== password2) {
-      setError('Passwords do not match.')
+    const errors = validateRegister({ email, phone, password, password2 })
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors)
       return
     }
+    setFieldErrors({})
 
     setSubmitting(true)
     try {
@@ -53,7 +75,7 @@ export default function Register() {
         </div>
 
         <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
             <div>
               <label htmlFor="register-email" className="mb-1 block text-sm font-medium text-slate-700">Email</label>
               <input
@@ -61,10 +83,11 @@ export default function Register() {
                 type="email"
                 placeholder="you@example.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                onChange={(e) => { setEmail(e.target.value); clearFieldError('email') }}
+                aria-invalid={Boolean(fieldErrors.email)}
+                className={inputClass('email')}
               />
+              {fieldErrors.email && <p className="mt-1 text-xs text-red-600">{fieldErrors.email}</p>}
             </div>
 
             <div>
@@ -74,10 +97,11 @@ export default function Register() {
                 type="tel"
                 placeholder="Phone number"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                required
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                onChange={(e) => { setPhone(e.target.value); clearFieldError('phone') }}
+                aria-invalid={Boolean(fieldErrors.phone)}
+                className={inputClass('phone')}
               />
+              {fieldErrors.phone && <p className="mt-1 text-xs text-red-600">{fieldErrors.phone}</p>}
             </div>
 
             <div>
@@ -88,9 +112,9 @@ export default function Register() {
                   type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 pr-10 text-sm outline-none transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                  onChange={(e) => { setPassword(e.target.value); clearFieldError('password') }}
+                  aria-invalid={Boolean(fieldErrors.password)}
+                  className={inputClass('password', 'pr-10')}
                 />
                 <button
                   type="button"
@@ -110,6 +134,11 @@ export default function Register() {
                   )}
                 </button>
               </div>
+              {fieldErrors.password ? (
+                <p className="mt-1 text-xs text-red-600">{fieldErrors.password}</p>
+              ) : (
+                <p className="mt-1 text-xs text-gray-500">Must be at least 8 characters.</p>
+              )}
             </div>
 
             <div>
@@ -120,9 +149,9 @@ export default function Register() {
                   type={showPassword2 ? 'text' : 'password'}
                   placeholder="••••••••"
                   value={password2}
-                  onChange={(e) => setPassword2(e.target.value)}
-                  required
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 pr-10 text-sm outline-none transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                  onChange={(e) => { setPassword2(e.target.value); clearFieldError('password2') }}
+                  aria-invalid={Boolean(fieldErrors.password2)}
+                  className={inputClass('password2', 'pr-10')}
                 />
                 <button
                   type="button"
@@ -142,6 +171,7 @@ export default function Register() {
                   )}
                 </button>
               </div>
+              {fieldErrors.password2 && <p className="mt-1 text-xs text-red-600">{fieldErrors.password2}</p>}
             </div>
 
             {error && <p className="text-sm text-red-600">{error}</p>}

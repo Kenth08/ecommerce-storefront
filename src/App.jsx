@@ -6,8 +6,11 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Footer from './components/Footer'
 import ProductDetail from './pages/ProductDetail'
+import Shop from './pages/Shop'
+import Wishlist from './pages/Wishlist'
 import ErrorBoundary from './components/ErrorBoundary'
 import ProtectedRoute from './components/ProtectedRoute'
+import ScrollToTop from './components/ScrollToTop'
 import { Toaster } from 'react-hot-toast'
 import NotFound from './pages/NotFound'
 
@@ -18,12 +21,15 @@ function App() {
   return (
     <>
       <Toaster />
+      <ScrollToTop />
 
       <Navbar />
       <ErrorBoundary>
       <Routes>
         <Route path="/register" element={<Register />} />
         <Route path="/" element={<Home />} />
+        <Route path="/shop" element={<Shop />} />
+        <Route path="/wishlist" element={<Wishlist />} />
         <Route
           path="/cart"
           element={

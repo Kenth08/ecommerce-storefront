@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 import logoIcon from '../assets/logo-icon.png'
 import useDocumentTitle from '../hooks/useDocumentTitle'
+import { validateLogin } from '../utils/validation'
 
 export default function Login() {
   useDocumentTitle('Login')
@@ -14,12 +15,30 @@ export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [fieldErrors, setFieldErrors] = useState({})
   const [error, setError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
+
+  function clearFieldError(field) {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev
+      const next = { ...prev }
+      delete next[field]
+      return next
+    })
+  }
 
   async function handleSubmit(e) {
     e.preventDefault()
     setError(null)
+
+    const errors = validateLogin({ email, password })
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors)
+      return
+    }
+    setFieldErrors({})
+
     setSubmitting(true)
     try {
       await login(email, password)
@@ -43,37 +62,49 @@ export default function Login() {
         </div>
 
         <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
 
-            <div className="relative">
-              <input
-                id="login-email"
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="peer w-full rounded-lg border border-gray-300 px-3 pt-5 pb-2 text-sm outline-none transition-all focus:border-orange-500 focus:ring-2 focus:ring-orange-100 placeholder-transparent"
-              />
-              <label
-                htmlFor="login-email"
-                className="absolute left-3 top-1/2 -translate-y-1/2 bg-white px-1 text-gray-500 transition-all duration-200 pointer-events-none
-                peer-focus:top-0 peer-focus:text-xs peer-focus:text-orange-500
-                peer-[:not(:placeholder-shown)]:top-0 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:text-orange-500"
-              >
-                Email
-              </label>
+            <div>
+              <div className="relative">
+                <input
+                  id="login-email"
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => { setEmail(e.target.value); clearFieldError('email') }}
+                  aria-invalid={Boolean(fieldErrors.email)}
+                  className={`peer w-full rounded-lg border px-3 pt-5 pb-2 text-sm outline-none transition-all focus:ring-2 placeholder-transparent ${
+                    fieldErrors.email
+                      ? 'border-red-400 focus:border-red-500 focus:ring-red-100'
+                      : 'border-gray-300 focus:border-orange-500 focus:ring-orange-100'
+                  }`}
+                />
+                <label
+                  htmlFor="login-email"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 bg-white px-1 text-gray-500 transition-all duration-200 pointer-events-none
+                  peer-focus:top-0 peer-focus:text-xs peer-focus:text-orange-500
+                  peer-[:not(:placeholder-shown)]:top-0 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:text-orange-500"
+                >
+                  Email
+                </label>
+              </div>
+              {fieldErrors.email && <p className="mt-1 text-xs text-red-600">{fieldErrors.email}</p>}
             </div>
 
-            <div className="relative">
+            <div>
+              <div className="relative">
               <input
                 id="login-password"
                 type={showPassword ? 'text' : 'password'}
                 placeholder="Password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="peer w-full rounded-lg border border-gray-300 px-3 pt-5 pb-2 pr-10 text-sm outline-none transition-all focus:border-orange-500 focus:ring-2 focus:ring-orange-100 placeholder-transparent"
+                onChange={(e) => { setPassword(e.target.value); clearFieldError('password') }}
+                aria-invalid={Boolean(fieldErrors.password)}
+                className={`peer w-full rounded-lg border px-3 pt-5 pb-2 pr-10 text-sm outline-none transition-all focus:ring-2 placeholder-transparent ${
+                  fieldErrors.password
+                    ? 'border-red-400 focus:border-red-500 focus:ring-red-100'
+                    : 'border-gray-300 focus:border-orange-500 focus:ring-orange-100'
+                }`}
               />
               <label
                 htmlFor="login-password"
@@ -100,6 +131,8 @@ export default function Login() {
                   </svg>
                 )}
               </button>
+              </div>
+              {fieldErrors.password && <p className="mt-1 text-xs text-red-600">{fieldErrors.password}</p>}
             </div>
 
             {error && <p className="text-sm text-red-600">{error}</p>}

@@ -23,7 +23,7 @@ export default function Cart() {
         <h1 className="text-xl font-bold text-slate-900">Your cart is empty</h1>
         <p className="text-sm text-gray-500">Looks like you haven't added anything yet.</p>
         <Link
-          to="/"
+          to="/shop"
           className="mt-2 rounded-lg bg-orange-500 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-orange-600"
         >
           Continue shopping
