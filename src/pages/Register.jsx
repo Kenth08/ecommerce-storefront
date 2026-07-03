@@ -66,11 +66,52 @@ export default function Register() {
   }
 
   return (
-    <div className="flex min-h-[70vh] items-center justify-center bg-gray-50 px-4 py-12">
+    <div className="flex min-h-screen">
+      {/* Brand panel — hidden on small screens */}
+      <div className="relative hidden w-1/2 overflow-hidden bg-linear-to-br from-slate-900 via-slate-800 to-orange-700 lg:flex lg:flex-col lg:justify-between lg:p-12">
+        <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-orange-500/20 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-20 -left-10 h-72 w-72 rounded-full bg-orange-400/10 blur-3xl" />
+
+        <Link to="/" className="relative flex w-fit items-center gap-3 text-white">
+          <img src={logoIcon} alt="" className="h-12 w-auto" />
+          <span className="text-2xl font-bold tracking-tight">
+            Ecom<span className="text-orange-400">ify</span>
+          </span>
+        </Link>
+
+        <div className="relative text-white">
+          <h2 className="text-3xl font-bold leading-tight xl:text-4xl">
+            Join Ecomify today.
+          </h2>
+          <p className="mt-3 max-w-sm text-sm text-gray-300">
+            Create an account to save your cart, track orders, and check out faster.
+          </p>
+
+          <ul className="mt-8 flex flex-col gap-3 text-sm">
+            {['Save items to your wishlist', 'Faster checkout every time', 'Order tracking & history'].map((perk) => (
+              <li key={perk} className="flex items-center gap-3">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-orange-500/20">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="h-3.5 w-3.5 text-orange-400">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
+                </span>
+                <span className="text-gray-200">{perk}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <p className="relative text-xs text-gray-400">© 2026 Ecomify. All rights reserved.</p>
+      </div>
+
+      {/* Form panel */}
+      <div className="flex w-full items-center justify-center bg-gray-50 px-4 py-12 lg:w-1/2">
       <div className="w-full max-w-sm">
         <div className="mb-6 flex flex-col items-center text-center">
-          <img src={logoIcon} alt="Ecomify" className="h-14 w-auto" />
-          <h1 className="mt-4 text-2xl font-bold text-slate-900">Create account</h1>
+          <Link to="/" className="lg:hidden">
+            <img src={logoIcon} alt="Ecomify" className="h-14 w-auto" />
+          </Link>
+          <h1 className="mt-4 text-2xl font-bold text-slate-900 lg:mt-0">Create account</h1>
           <p className="mt-1 text-sm text-gray-500">Sign up to get started with Ecomify</p>
         </div>
 
@@ -192,6 +233,7 @@ export default function Register() {
             Login
           </Link>
         </p>
+      </div>
       </div>
     </div>
   )

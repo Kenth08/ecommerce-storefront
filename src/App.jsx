@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Home from './pages/Home'
 import Cart from './pages/Cart'
@@ -9,7 +9,6 @@ import ProductDetail from './pages/ProductDetail'
 import Shop from './pages/Shop'
 import Wishlist from './pages/Wishlist'
 import ErrorBoundary from './components/ErrorBoundary'
-import ProtectedRoute from './components/ProtectedRoute'
 import ScrollToTop from './components/ScrollToTop'
 import { Toaster } from 'react-hot-toast'
 import NotFound from './pages/NotFound'
@@ -18,6 +17,10 @@ import NotFound from './pages/NotFound'
 
 
 function App() {
+  const { pathname } = useLocation()
+  // Auth pages are full-screen standalone — no site navbar/footer.
+  const hideChrome = pathname === '/login' || pathname === '/register'
+
   return (
     <>
       <Toaster />
@@ -30,7 +33,7 @@ function App() {
         Skip to main content
       </a>
 
-      <Navbar />
+      {!hideChrome && <Navbar />}
       <ErrorBoundary>
       <main id="main-content" tabIndex={-1} className="flex-1">
       <Routes>
@@ -38,14 +41,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/shop" element={<Shop />} />
         <Route path="/wishlist" element={<Wishlist />} />
-        <Route
-          path="/cart"
-          element={
-            <ProtectedRoute>
-              <Cart />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/cart" element={<Cart />} />
         <Route path="/login" element={<Login />} />
         <Route path="/product/:slug" element={<ProductDetail />} />
         <Route path="*" element={<NotFound />} />
@@ -53,7 +49,7 @@ function App() {
       </Routes>
       </main>
       </ErrorBoundary>
-      <Footer />
+      {!hideChrome && <Footer />}
     </>
   )
 }
