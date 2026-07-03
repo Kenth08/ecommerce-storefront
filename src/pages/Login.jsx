@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 import logoIcon from '../assets/logo-icon.png'
@@ -9,6 +9,8 @@ export default function Login() {
   useDocumentTitle('Login')
   const { login } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  const from = location.state?.from?.pathname || '/'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -22,7 +24,7 @@ export default function Login() {
     try {
       await login(email, password)
       toast.success('Logged in successfully!')
-      navigate('/')
+      navigate(from, { replace: true })
     } catch {
       toast.error('Invalid email or password.')
       setError('Invalid email or password.')

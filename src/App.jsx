@@ -7,6 +7,7 @@ import Register from './pages/Register'
 import Footer from './components/Footer'
 import ProductDetail from './pages/ProductDetail'
 import ErrorBoundary from './components/ErrorBoundary'
+import ProtectedRoute from './components/ProtectedRoute'
 import { Toaster } from 'react-hot-toast'
 import NotFound from './pages/NotFound'
 
@@ -23,7 +24,14 @@ function App() {
       <Routes>
         <Route path="/register" element={<Register />} />
         <Route path="/" element={<Home />} />
-        <Route path="/cart" element={<Cart />} />
+        <Route
+          path="/cart"
+          element={
+            <ProtectedRoute>
+              <Cart />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/login" element={<Login />} />
         <Route path="/product/:slug" element={<ProductDetail />} />
         <Route path="*" element={<NotFound />} />

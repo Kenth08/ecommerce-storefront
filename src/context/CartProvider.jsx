@@ -1,7 +1,6 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { getPrimaryImage } from '../utils/productHelpers'
-
-const CartContext = createContext(null)
+import { CartContext } from './CartContext'
 
 export function CartProvider({ children }) {
   const [items, setItems] = useState(() => {
@@ -73,8 +72,4 @@ export function CartProvider({ children }) {
       {children}
     </CartContext.Provider>
   )
-}
-
-export function useCart() {
-  return useContext(CartContext)
 }
