@@ -12,6 +12,7 @@ import ErrorBoundary from './components/ErrorBoundary'
 import ScrollToTop from './components/ScrollToTop'
 import { Toaster } from 'react-hot-toast'
 import NotFound from './pages/NotFound'
+import OrderConfirmed from './pages/OrderConfirmed'
 
 
 
@@ -42,6 +43,7 @@ function App() {
         <Route path="/shop" element={<Shop />} />
         <Route path="/wishlist" element={<Wishlist />} />
         <Route path="/cart" element={<Cart />} />
+        <Route path="/order-confirmed" element={<OrderConfirmed />} />
         <Route path="/login" element={<Login />} />
         <Route path="/product/:slug" element={<ProductDetail />} />
         <Route path="*" element={<NotFound />} />

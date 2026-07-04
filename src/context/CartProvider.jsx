@@ -41,7 +41,7 @@ function hydrate(serverItems) {
     return {
       ...it,
       name: it.name || extra.name || 'Product',
-      image: it.image || extra.image || '/hero.png',
+      image: it.image || extra.image || '/placeholder-product.svg',
       slug: it.slug || extra.slug || null,
       productId: extra.productId ?? null,
     }
@@ -213,7 +213,15 @@ export function CartProvider({ children }) {
 
   return (
     <CartContext.Provider
-      value={{ items, loading, addToCart, removeFromCart, increaseQuantity, decreaseQuantity }}
+      value={{
+        items,
+        loading,
+        addToCart,
+        removeFromCart,
+        increaseQuantity,
+        decreaseQuantity,
+        refreshCart: refreshServerCart,
+      }}
     >
       {children}
     </CartContext.Provider>

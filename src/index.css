@@ -1,7 +1,13 @@
 @import "tailwindcss";
 
+/* Class-based dark mode: `dark:` utilities apply when <html> has `.dark`. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --animate-shake: shake 0.5s ease-in-out;
+  /* `backwards` holds the hidden state through the stagger delay, then reverts
+     to base after — so it never overrides a card's hover-lift transform. */
+  --animate-fade-in-up: fade-in-up 0.5s ease-out backwards;
 }
 
 @keyframes shake {
@@ -12,11 +18,30 @@
   80% { transform: rotate(4deg); }
 }
 
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Anchor links (e.g. hero CTA -> #products) glide instead of jumping. */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
 body {
   margin: 0;
   font-family: 'Inter', system-ui, sans-serif;
   color: #111827;
+  background-color: #ffffff;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Dark theme base canvas + default text colour. */
+.dark body {
+  color: #e2e8f0; /* slate-200 */
+  background-color: #020617; /* slate-950 */
 }
 
 #root {

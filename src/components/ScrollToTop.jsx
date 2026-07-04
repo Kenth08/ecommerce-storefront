@@ -7,7 +7,9 @@ export default function ScrollToTop() {
   const { pathname } = useLocation()
 
   useEffect(() => {
-    window.scrollTo(0, 0)
+    // 'instant' overrides the global smooth scroll-behavior, so navigating to a
+    // new page jumps to the top immediately instead of animating a long scroll.
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
   }, [pathname])
 
   return null

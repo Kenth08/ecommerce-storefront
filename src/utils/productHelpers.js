@@ -1,6 +1,6 @@
 export function getPrimaryImage(product) {
   const primary = product.images?.find((img) => img.is_primary)
-  return primary?.image || product.images?.[0]?.image || '/hero.png'
+  return primary?.image || product.images?.[0]?.image || '/placeholder-product.svg'
 }
 
 export function getActiveVariants(product) {

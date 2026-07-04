@@ -41,6 +41,20 @@ export function AuthProvider({ children }) {
     await login(email, password)
   }
 
+  // Social login: exchange a Google ID token (from Google Identity Services)
+  // for our app's JWT. Backend: POST /auth/google/ { id_token } -> { access, refresh }.
+  async function googleLogin(idToken) {
+    const res = await api.post('/auth/google/', { id_token: idToken })
+    const { access, refresh } = res.data
+    localStorage.setItem('accessToken', access)
+    localStorage.setItem('refreshToken', refresh)
+    setAccessToken(access)
+    const me = await api.get('/auth/me/', {
+      headers: { Authorization: `Bearer ${access}` },
+    })
+    setUser(me.data)
+  }
+
   function logout() {
     const refresh = localStorage.getItem('refreshToken')
     if (refresh) {
@@ -55,7 +69,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, accessToken, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, accessToken, loading, login, register, googleLogin, logout }}>
       {children}
     </AuthContext.Provider>
   )

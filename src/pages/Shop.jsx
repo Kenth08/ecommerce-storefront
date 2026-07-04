@@ -58,12 +58,12 @@ export default function Shop() {
     `rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
       isActive
         ? 'border-orange-500 bg-orange-500 text-white'
-        : 'border-gray-300 bg-white text-gray-700 hover:border-orange-400 hover:text-orange-500'
+        : 'border-gray-300 bg-white text-gray-700 hover:border-orange-400 hover:text-orange-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-orange-400 dark:hover:text-orange-400'
     }`
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-8 sm:py-14">
-      <h1 className="mb-6 text-2xl font-bold text-slate-900 sm:text-3xl">Shop All Products</h1>
+      <h1 className="mb-6 text-2xl font-bold text-slate-900 sm:text-3xl dark:text-slate-100">Shop All Products</h1>
 
       {/* Category filter chips */}
       {!error && categories.length > 0 && (
@@ -103,7 +103,7 @@ export default function Shop() {
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search products..."
               aria-label="Search products"
-              className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-3 text-sm outline-none transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+              className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-3 text-sm outline-none transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
             />
           </div>
 
@@ -111,7 +111,7 @@ export default function Shop() {
             value={sort}
             onChange={(e) => setSort(e.target.value)}
             aria-label="Sort products"
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 outline-none transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+            className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 outline-none transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
           >
             <option value="default">Sort: Featured</option>
             <option value="price-asc">Price: Low to High</option>
@@ -133,11 +133,11 @@ export default function Shop() {
       {error && <p className="text-center text-red-600">{error}</p>}
 
       {!loading && !error && products.length === 0 && (
-        <p className="text-center text-gray-500">No products available yet — check back soon.</p>
+        <p className="text-center text-gray-500 dark:text-slate-400">No products available yet — check back soon.</p>
       )}
 
       {!loading && !error && products.length > 0 && visibleProducts.length === 0 && (
-        <p className="text-center text-gray-500">No products match your filters.</p>
+        <p className="text-center text-gray-500 dark:text-slate-400">No products match your filters.</p>
       )}
 
       {!loading && !error && visibleProducts.length > 0 && (

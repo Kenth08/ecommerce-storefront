@@ -5,6 +5,7 @@ import { useCart } from '../context/CartContext'
 import { useWishlist } from '../context/WishlistContext'
 import toast from 'react-hot-toast'
 import logoIcon from '../assets/logo-icon.png'
+import ThemeToggle from './ThemeToggle'
 
 export default function Navbar() {
   const { user, logout } = useAuth()
@@ -133,6 +134,8 @@ export default function Navbar() {
             )}
           </NavLink>
 
+          <ThemeToggle />
+
           <span className="h-6 w-px bg-slate-700" aria-hidden="true" />
 
           {user ? (
@@ -186,6 +189,11 @@ export default function Navbar() {
             </svg>
             Cart
           </NavLink>
+
+          <div className="flex items-center justify-between border-t border-slate-800 pt-3 text-gray-300">
+            <span>Theme</span>
+            <ThemeToggle />
+          </div>
 
           <div className="mt-1 border-t border-slate-800 pt-3">
             {user ? (

@@ -90,7 +90,7 @@ export default function Home() {
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search products..."
                 aria-label="Search products"
-                className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-3 text-sm outline-none transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-3 text-sm outline-none transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
               />
             </div>
 
@@ -98,7 +98,7 @@ export default function Home() {
               value={sort}
               onChange={(e) => setSort(e.target.value)}
               aria-label="Sort products"
-              className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 outline-none transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+              className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 outline-none transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
             >
               <option value="default">Sort: Featured</option>
               <option value="price-asc">Price: Low to High</option>
@@ -119,19 +119,19 @@ export default function Home() {
         {error && <p className="text-center text-red-600">{error}</p>}
 
         {!loading && !error && products.length === 0 && (
-          <p className="text-center text-gray-500">No products available yet — check back soon.</p>
+          <p className="text-center text-gray-500 dark:text-slate-400">No products available yet — check back soon.</p>
         )}
 
         {!loading && !error && products.length > 0 && visibleProducts.length === 0 && (
-          <p className="text-center text-gray-500">
+          <p className="text-center text-gray-500 dark:text-slate-400">
             No products match &ldquo;{query}&rdquo;.
           </p>
         )}
 
         {!loading && !error && visibleProducts.length > 0 && (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
-            {visibleProducts.map((p) => (
-              <ProductCard key={p.id} product={p} />
+            {visibleProducts.map((p, i) => (
+              <ProductCard key={p.id} product={p} index={i} />
             ))}
           </div>
         )}
