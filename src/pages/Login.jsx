@@ -105,7 +105,7 @@ export default function Login() {
             <input
               id="login-email"
               type="email"
-              placeholder="you@example.com"
+              placeholder="Email address"
               value={email}
               onChange={(e) => { setEmail(e.target.value); clearFieldError('email') }}
               aria-invalid={Boolean(fieldErrors.email)}
