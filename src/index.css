@@ -44,6 +44,18 @@ body {
   background-color: #020617; /* slate-950 */
 }
 
+/* Toast colours, consumed by <Toaster> so notifications match the theme. */
+:root {
+  --toast-bg: #ffffff;
+  --toast-color: #1e293b; /* slate-800 */
+  --toast-border: #e2e8f0; /* slate-200 */
+}
+.dark {
+  --toast-bg: #1e293b; /* slate-800 */
+  --toast-color: #e2e8f0; /* slate-200 */
+  --toast-border: #334155; /* slate-700 */
+}
+
 #root {
   display: flex;
   flex-direction: column;

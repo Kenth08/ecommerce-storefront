@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { getProduct } from '../api/products'
 import { useCart } from '../context/CartContext'
@@ -9,7 +9,15 @@ import useDocumentTitle from '../hooks/useDocumentTitle'
 
 export default function ProductDetail() {
   const { slug } = useParams()
+  const navigate = useNavigate()
+  const location = useLocation()
   const { addToCart } = useCart()
+
+  // Return to the previous page; fall back to Shop on a direct load (no history).
+  function handleBack() {
+    if (location.key === 'default') navigate('/shop')
+    else navigate(-1)
+  }
   const { isWished, toggleWishlist } = useWishlist()
   const [product, setProduct] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -101,6 +109,23 @@ export default function ProductDetail() {
 
   return (
     <div className="mx-auto max-w-4xl p-4 sm:p-8">
+      <button
+        onClick={handleBack}
+        className="group mb-3 inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:border-orange-300 hover:text-orange-600 dark:border-slate-700 dark:text-slate-300 dark:hover:border-orange-500/50 dark:hover:text-orange-400"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={2}
+          stroke="currentColor"
+          className="h-4 w-4 transition-transform group-hover:-translate-x-0.5"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+        </svg>
+        Back
+      </button>
+
       {/* Breadcrumb */}
       <nav className="mb-4 flex flex-wrap items-center gap-1.5 text-sm text-gray-500 dark:text-slate-400">
         <Link to="/" className="hover:text-orange-600">Home</Link>

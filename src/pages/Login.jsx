@@ -43,7 +43,7 @@ export default function Login() {
 
     setSubmitting(true)
     try {
-      await login(email, password)
+      await login(email, password, remember)
       toast.success('Logged in successfully!')
       navigate(from, { replace: true })
     } catch {
@@ -115,18 +115,9 @@ export default function Login() {
           </div>
 
           <div>
-            <div className="mb-1.5 flex items-center justify-between">
-              <label htmlFor="login-password" className="block text-sm font-medium text-slate-700">
-                Password
-              </label>
-              <button
-                type="button"
-                onClick={() => toast('Password reset is coming soon.')}
-                className="text-xs font-medium text-slate-500 hover:text-slate-900"
-              >
-                Forgot password?
-              </button>
-            </div>
+            <label htmlFor="login-password" className="mb-1.5 block text-sm font-medium text-slate-700">
+              Password
+            </label>
             <div className="relative">
               <input
                 id="login-password"

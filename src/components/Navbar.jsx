@@ -30,15 +30,15 @@ export default function Navbar() {
       (t) => (
         <div className="flex flex-col gap-3">
           <div>
-            <p className="text-sm font-semibold text-slate-900">Log out?</p>
-            <p className="mt-0.5 text-xs text-gray-500">
+            <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Log out?</p>
+            <p className="mt-0.5 text-xs text-gray-500 dark:text-slate-400">
               You&apos;ll need to sign in again to access your account.
             </p>
           </div>
           <div className="flex justify-end gap-2">
             <button
               onClick={() => toast.dismiss(t.id)}
-              className="rounded-md px-3 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-100"
+              className="rounded-md px-3 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-700"
             >
               Cancel
             </button>
@@ -67,7 +67,7 @@ export default function Navbar() {
 
   return (
     <nav className="sticky top-0 z-20 bg-slate-900 text-white shadow-md">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-2 sm:px-8">
+      <div className="flex w-full items-center justify-between gap-4 px-4 py-2 sm:px-8 lg:px-12">
         <NavLink to="/" className="flex items-center gap-2">
           <img src={logoIcon} alt="" className="h-10 w-auto sm:h-12" />
           <span className="text-xl font-bold tracking-tight sm:text-2xl">
@@ -134,8 +134,6 @@ export default function Navbar() {
             )}
           </NavLink>
 
-          <ThemeToggle />
-
           <span className="h-6 w-px bg-slate-700" aria-hidden="true" />
 
           {user ? (
@@ -143,6 +141,8 @@ export default function Navbar() {
           ) : (
             <NavLink to="/login" className={authButtonClass}>Login</NavLink>
           )}
+
+          <ThemeToggle />
         </div>
       </div>
 

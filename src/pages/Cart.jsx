@@ -100,15 +100,39 @@ export default function Cart() {
           </div>
         ))}
       </div>
-      <div className="mt-6 flex flex-col items-end gap-4">
-        <p className="text-lg font-semibold">Total: ${total.toFixed(2)}</p>
-        <button
-          onClick={handleCheckout}
-          disabled={placingOrder}
-          className="w-full rounded-lg bg-orange-500 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-        >
-          {placingOrder ? 'Placing order…' : 'Proceed to checkout'}
-        </button>
+      <div className="mt-8 sm:ml-auto sm:max-w-sm">
+        <div className="rounded-xl border border-gray-200 p-5 dark:border-slate-800">
+          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+            Order summary
+          </h2>
+          <dl className="flex flex-col gap-2 text-sm">
+            <div className="flex justify-between">
+              <dt className="text-gray-600 dark:text-slate-400">Subtotal</dt>
+              <dd className="font-medium">${total.toFixed(2)}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-gray-600 dark:text-slate-400">Shipping</dt>
+              <dd className="font-medium text-green-600 dark:text-green-400">Free</dd>
+            </div>
+            <div className="mt-2 flex justify-between border-t border-gray-200 pt-3 text-base font-semibold dark:border-slate-800">
+              <dt>Total</dt>
+              <dd>${total.toFixed(2)}</dd>
+            </div>
+          </dl>
+          <button
+            onClick={handleCheckout}
+            disabled={placingOrder}
+            className="mt-5 w-full rounded-lg bg-orange-500 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {placingOrder ? 'Placing order…' : 'Proceed to checkout'}
+          </button>
+          <Link
+            to="/shop"
+            className="mt-3 block text-center text-sm font-medium text-orange-600 transition-colors hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300"
+          >
+            Continue shopping
+          </Link>
+        </div>
       </div>
     </div>
   )

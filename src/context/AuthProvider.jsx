@@ -1,39 +1,43 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api/client'
+import { getAccessToken, setTokens, clearTokens } from '../api/tokenStorage'
 import { AuthContext } from './AuthContext'
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
-  const [accessToken, setAccessToken] = useState(() => localStorage.getItem('accessToken'))
+  const [accessToken, setAccessToken] = useState(() => getAccessToken())
   // Start in "loading" only if there's a token to validate.
-  const [loading, setLoading] = useState(() => Boolean(localStorage.getItem('accessToken')))
+  const [loading, setLoading] = useState(() => Boolean(getAccessToken()))
 
   useEffect(() => {
     // Restore the session once on mount, using the token in storage.
-    const token = localStorage.getItem('accessToken')
+    const token = getAccessToken()
     if (!token) return
     api.get('/auth/me/', {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => setUser(res.data))
       .catch(() => {
-        localStorage.removeItem('accessToken')
-        localStorage.removeItem('refreshToken')
+        clearTokens()
         setAccessToken(null)
       })
       .finally(() => setLoading(false))
   }, [])
 
-  async function login(email, password) {
-    const res = await api.post('/auth/login/', { email, password })
-    const { access, refresh } = res.data
-    localStorage.setItem('accessToken', access)
-    localStorage.setItem('refreshToken', refresh)
+  // Store the session and load the current user. `remember` controls whether
+  // tokens persist across browser restarts (localStorage) or not (sessionStorage).
+  async function establishSession(access, refresh, remember = true) {
+    setTokens({ access, refresh, remember })
     setAccessToken(access)
     const me = await api.get('/auth/me/', {
       headers: { Authorization: `Bearer ${access}` },
     })
     setUser(me.data)
+  }
+
+  async function login(email, password, remember = true) {
+    const res = await api.post('/auth/login/', { email, password })
+    await establishSession(res.data.access, res.data.refresh, remember)
   }
 
   async function register(email, phone, password, password2) {
@@ -45,25 +49,17 @@ export function AuthProvider({ children }) {
   // for our app's JWT. Backend: POST /auth/google/ { id_token } -> { access, refresh }.
   async function googleLogin(idToken) {
     const res = await api.post('/auth/google/', { id_token: idToken })
-    const { access, refresh } = res.data
-    localStorage.setItem('accessToken', access)
-    localStorage.setItem('refreshToken', refresh)
-    setAccessToken(access)
-    const me = await api.get('/auth/me/', {
-      headers: { Authorization: `Bearer ${access}` },
-    })
-    setUser(me.data)
+    await establishSession(res.data.access, res.data.refresh)
   }
 
   function logout() {
-    const refresh = localStorage.getItem('refreshToken')
+    const refresh = localStorage.getItem('refreshToken') || sessionStorage.getItem('refreshToken')
     if (refresh) {
       api.post('/auth/logout/', { refresh }, {
         headers: { Authorization: `Bearer ${accessToken}` },
       }).catch(() => {})
     }
-    localStorage.removeItem('accessToken')
-    localStorage.removeItem('refreshToken')
+    clearTokens()
     setAccessToken(null)
     setUser(null)
   }
