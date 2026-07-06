@@ -4,7 +4,7 @@ export function getPrimaryImage(product) {
 }
 
 export function getActiveVariants(product) {
-  return product.variant?.filter((v) => v.is_active) ?? []
+  return product.variants?.filter((v) => v.is_active) ?? []
 }
 
 export function getStartingPrice(product) {

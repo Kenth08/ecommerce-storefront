@@ -11,6 +11,9 @@ export default function ProductCard({ product, index = 0 }) {
   const { user } = useAuth()
   const { flyToNavIcon } = useFly()
   const imageRef = useRef(null)
+  // Locks out extra clicks while an add-fly is in the air, so a rapid burst
+  // launches ONE flight / ONE add instead of many.
+  const addingRef = useRef(false)
   const wished = isWished(product.id)
 
   function handleWishlist(e) {
@@ -23,13 +26,19 @@ export default function ProductCard({ product, index = 0 }) {
       toggleWishlist(product)
       return
     }
+    // Ignore repeat clicks until the current add-fly lands.
+    if (addingRef.current) return
+    addingRef.current = true
     // Adding: fly the whole product image to the navbar heart, then add on land.
     const startRect = (imageRef.current ?? e.currentTarget).getBoundingClientRect()
     flyToNavIcon({
       product,
       startRect,
       targetType: 'wishlist',
-      onArrive: () => addToWishlist(product),
+      onArrive: () => {
+        addToWishlist(product)
+        addingRef.current = false
+      },
     })
   }
 

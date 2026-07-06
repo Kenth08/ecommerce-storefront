@@ -15,6 +15,9 @@ export default function ProductDetail() {
   const { addToCart } = useCart()
   const { flyToNavIcon } = useFly()
   const productImageRef = useRef(null)
+  // Locks out extra clicks while an add-fly is in the air, so a rapid burst
+  // adds the item once instead of stacking quantity.
+  const addingRef = useRef(false)
 
   // Return to the previous page; fall back to Shop on a direct load (no history).
   function handleBack() {
@@ -105,6 +108,9 @@ export default function ProductDetail() {
 
   function handleAddToCart(e) {
     if (!selectedVariant) return
+    // Ignore repeat clicks until the current add-fly lands.
+    if (addingRef.current) return
+    addingRef.current = true
     setAdded(true)
     setTimeout(() => setAdded(false), 1500)
     // Fly the whole product image to the navbar cart, then add when it lands.
@@ -116,6 +122,7 @@ export default function ProductDetail() {
       onArrive: () => {
         addToCart(product, selectedVariant, quantity)
         toast.success(`${quantity} × ${product.name} added to cart`, { id: 'cart' })
+        addingRef.current = false
       },
     })
   }

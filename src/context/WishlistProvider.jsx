@@ -31,8 +31,9 @@ export function WishlistProvider({ children }) {
       toast('Log in to save items to your wishlist', { icon: '🔒', id: 'wishlist' })
       return
     }
-    if (items.some((p) => p.id === product.id)) return
-    setItems((prev) => [...prev, product])
+    // Dedup against the LATEST state (prev), not a stale render-closure copy,
+    // so a burst of rapid adds can never insert the same product twice.
+    setItems((prev) => (prev.some((p) => p.id === product.id) ? prev : [...prev, product]))
     toast(`${product.name} added to wishlist`, { icon: '❤️', id: 'wishlist' })
   }
 
@@ -49,7 +50,9 @@ export function WishlistProvider({ children }) {
       setItems((prev) => prev.filter((p) => p.id !== product.id))
       toast(`${product.name} removed from wishlist`, { icon: '🤍', id: 'wishlist' })
     } else {
-      setItems((prev) => [...prev, product])
+      // Idempotent add: dedup against latest state so a rapid double-click
+      // resolves to a single entry, not two.
+      setItems((prev) => (prev.some((p) => p.id === product.id) ? prev : [...prev, product]))
       toast(`${product.name} added to wishlist`, { icon: '❤️', id: 'wishlist' })
     }
   }

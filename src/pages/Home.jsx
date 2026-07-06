@@ -94,6 +94,32 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Shop by category — placed high, like a storefront's primary nav */}
+      {!loading && !error && categories.length > 0 && (
+        <section className="mx-auto max-w-6xl px-4 pt-12 sm:px-8 sm:pt-16">
+          <div className="mb-5 flex items-end justify-between">
+            <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl dark:text-slate-100">Shop by Category</h2>
+            <Link
+              to="/shop"
+              className="shrink-0 text-sm font-semibold text-orange-600 transition-colors hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300"
+            >
+              View all →
+            </Link>
+          </div>
+          <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 sm:gap-4 lg:grid-cols-6">
+            {categories.map((cat) => (
+              <Link
+                key={cat.id}
+                to="/shop"
+                className="group flex h-20 items-center justify-center rounded-lg border border-gray-200 bg-white px-3 text-center text-sm font-medium text-slate-700 transition-all hover:border-orange-300 hover:text-orange-600 hover:shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-orange-500/50 dark:hover:text-orange-400"
+              >
+                {cat.name}
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Featured products */}
       <section id="featured" className="mx-auto max-w-6xl px-4 py-12 sm:px-8 sm:py-16">
         <div className="mb-6 flex items-end justify-between">
@@ -131,24 +157,6 @@ export default function Home() {
           </div>
         )}
       </section>
-
-      {/* Shop by category */}
-      {!loading && !error && categories.length > 0 && (
-        <section className="mx-auto max-w-6xl px-4 pb-12 sm:px-8 sm:pb-16">
-          <h2 className="mb-6 text-2xl font-bold text-slate-900 sm:text-3xl dark:text-slate-100">Shop by Category</h2>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {categories.map((cat) => (
-              <Link
-                key={cat.id}
-                to="/shop"
-                className="group flex h-28 items-center justify-center rounded-xl border border-gray-200 bg-linear-to-br from-orange-50 to-white p-4 text-center text-lg font-semibold text-slate-800 transition-all hover:-translate-y-1 hover:border-orange-300 hover:shadow-md dark:border-slate-800 dark:from-slate-800 dark:to-slate-900 dark:text-slate-100 dark:hover:border-orange-500/50"
-              >
-                {cat.name}
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
 
       {/* Closing CTA */}
       <section className="bg-slate-900 dark:bg-slate-950/60">
