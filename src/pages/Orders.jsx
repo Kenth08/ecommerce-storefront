@@ -27,6 +27,9 @@ export default function Orders() {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  // Separate "backend hasn't shipped this endpoint yet" from a real failure,
+  // so a missing feature reads as a calm notice, not an alarming error.
+  const [unavailable, setUnavailable] = useState(false)
 
   // Orders live on the server and require auth — bounce guests to login.
   useEffect(() => {
@@ -36,7 +39,13 @@ export default function Orders() {
     }
     getOrders()
       .then(setOrders)
-      .catch(() => setError('Could not load your orders. Please try again.'))
+      .catch((err) => {
+        const status = err.response?.status
+        console.error('Load orders failed:', status, err.response?.data ?? err.message)
+        // 404/501 => the order-history endpoint isn't implemented yet.
+        if (status === 404 || status === 501) setUnavailable(true)
+        else setError('Could not load your orders. Please try again.')
+      })
       .finally(() => setLoading(false))
   }, [user, navigate])
 
@@ -53,11 +62,45 @@ export default function Orders() {
     )
   }
 
+  if (unavailable) {
+    return (
+      <div className="flex min-h-[70vh] flex-col items-center justify-center gap-4 px-4 text-center">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={1.5}
+          stroke="currentColor"
+          className="h-16 w-16 text-gray-300 dark:text-slate-600"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">Order history is coming soon</h1>
+        <p className="max-w-sm text-sm text-gray-500 dark:text-slate-400">
+          We can&apos;t show your past orders just yet — this feature is still being set up. Your
+          orders are safely recorded.
+        </p>
+        <Link
+          to="/shop"
+          className="mt-2 rounded-lg bg-orange-500 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-orange-600"
+        >
+          Continue shopping
+        </Link>
+      </div>
+    )
+  }
+
   if (error) {
     return (
       <div className="mx-auto max-w-2xl p-4 text-center sm:p-8">
         <h1 className="mb-4 text-2xl font-bold">My Orders</h1>
         <p className="text-red-600 dark:text-red-400">{error}</p>
+        <Link
+          to="/shop"
+          className="mt-4 inline-block text-sm font-medium text-orange-600 transition-colors hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300"
+        >
+          Back to shop
+        </Link>
       </div>
     )
   }

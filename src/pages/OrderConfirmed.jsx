@@ -1,8 +1,20 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { useCart } from '../context/CartContext'
+import { useAuth } from '../context/AuthContext'
 import useDocumentTitle from '../hooks/useDocumentTitle'
 
 export default function OrderConfirmed() {
   useDocumentTitle('Order Confirmed')
+  const { user } = useAuth()
+  const { refreshCart } = useCart()
+
+  // Arriving here after Stripe means the order is placed and the server cart
+  // was emptied. Re-fetch so the cart badge clears right away. Guard on `user`
+  // so a guest hitting this page directly doesn't trigger an auth redirect.
+  useEffect(() => {
+    if (user) refreshCart().catch(() => {})
+  }, [user, refreshCart])
 
   return (
     <div className="flex min-h-[70vh] flex-col items-center justify-center gap-4 px-4 text-center">
