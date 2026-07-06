@@ -106,6 +106,38 @@ export default function ProductDetail() {
 
   const maxQuantity = selectedVariant?.stock ?? 1
 
+  // Confirmation toast with quick actions — the user stays on the page, but can
+  // jump to the cart or check out this item without hunting for the nav icon.
+  function notifyAdded(variant) {
+    toast.custom(
+      (t) => (
+        <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-lg dark:border-slate-700 dark:bg-slate-800">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-green-100 text-sm text-green-600 dark:bg-green-500/15 dark:text-green-400">
+            ✓
+          </span>
+          <div className="flex flex-col gap-1">
+            <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Product added to cart</p>
+            <div className="flex gap-4">
+              <button
+                onClick={() => { toast.dismiss(t.id); navigate('/cart') }}
+                className="text-xs font-semibold text-orange-600 transition-colors hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300"
+              >
+                View Cart
+              </button>
+              <button
+                onClick={() => { toast.dismiss(t.id); navigate('/cart', { state: { buyNowVariantId: variant.id } }) }}
+                className="text-xs font-semibold text-slate-700 transition-colors hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
+              >
+                Checkout
+              </button>
+            </div>
+          </div>
+        </div>
+      ),
+      { id: 'cart', duration: 4000 }
+    )
+  }
+
   function handleAddToCart(e) {
     if (!selectedVariant) return
     // Ignore repeat clicks until the current add-fly lands.
@@ -114,14 +146,15 @@ export default function ProductDetail() {
     setAdded(true)
     setTimeout(() => setAdded(false), 1500)
     // Fly the whole product image to the navbar cart, then add when it lands.
+    const variant = selectedVariant
     const startRect = (productImageRef.current ?? e.currentTarget).getBoundingClientRect()
     flyToNavIcon({
       product,
       startRect,
       targetType: 'cart',
       onArrive: () => {
-        addToCart(product, selectedVariant, quantity)
-        toast.success(`${quantity} × ${product.name} added to cart`, { id: 'cart' })
+        addToCart(product, variant, quantity)
+        notifyAdded(variant)
         addingRef.current = false
       },
     })
