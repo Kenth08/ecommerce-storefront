@@ -9,11 +9,17 @@ import { api } from './client'
  * there. Stripe then sends the user to success_url / cancel_url, and a
  * backend webhook marks the order paid + empties the cart.
  *
+ * Pass `itemIds` (server cart-item ids) to order ONLY those items and leave
+ * the rest in the cart. Requires backend support for `item_ids`; without it
+ * the backend orders the whole cart — so the UI defaults to all-selected.
+ *
  * (Falls back gracefully if the endpoint returns no url — see Cart.jsx.)
  * Requires authentication (the api client attaches the bearer token).
  */
-export function checkout() {
-  return api.post('/orders/checkout/').then((res) => res.data)
+export function checkout(itemIds) {
+  const body =
+    Array.isArray(itemIds) && itemIds.length > 0 ? { item_ids: itemIds } : undefined
+  return api.post('/orders/checkout/', body).then((res) => res.data)
 }
 
 /**

@@ -45,7 +45,9 @@ export default function Navbar() {
     }
   }, [bump.cart, cartControls])
 
-  const cartCount = items.reduce((sum, item) => sum + item.quantity, 0)
+  // Count distinct products (cart lines), not total units — so 2× of one item
+  // reads as one entry. Matches the wishlist badge below for consistency.
+  const cartCount = items.length
   const wishlistCount = wishlistItems.length
 
   function confirmLogout() {

@@ -127,14 +127,15 @@ export default function ProductDetail() {
     })
   }
 
-  // Add the item, then go straight to the cart. Awaited so the logged-in
-  // (server) cart has the item before the cart page loads.
+  // Buy Now: add the item, then go to the cart with ONLY this product selected
+  // so checkout targets just it. Awaited so the logged-in (server) cart has the
+  // item before the cart page loads.
   async function handleBuyNow() {
     if (!selectedVariant || buying) return
     setBuying(true)
     try {
       await addToCart(product, selectedVariant, quantity)
-      navigate('/cart')
+      navigate('/cart', { state: { buyNowVariantId: selectedVariant.id } })
     } finally {
       setBuying(false)
     }

@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
@@ -11,8 +11,48 @@ export default function Cart() {
   const { items, removeFromCart, increaseQuantity, decreaseQuantity, refreshCart, flushCart } = useCart()
   const { user } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const [placingOrder, setPlacingOrder] = useState(false)
-  const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+
+  // Track UNSELECTED lines (by variantId). Empty set = everything selected,
+  // so newly added items are selected by default and nothing is a surprise.
+  const [deselected, setDeselected] = useState(() => new Set())
+
+  const selectedItems = items.filter((item) => !deselected.has(item.variantId))
+  const selectedCount = selectedItems.length
+  const allSelected = items.length > 0 && selectedCount === items.length
+  const someSelected = selectedCount > 0 && !allSelected
+  const total = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
+
+  // "Buy Now" lands here asking to select only that one product.
+  const buyNowVariantId = location.state?.buyNowVariantId
+  const appliedBuyNow = useRef(false)
+  useEffect(() => {
+    if (buyNowVariantId != null && items.length > 0 && !appliedBuyNow.current) {
+      appliedBuyNow.current = true
+      setDeselected(new Set(items.filter((i) => i.variantId !== buyNowVariantId).map((i) => i.variantId)))
+    }
+  }, [buyNowVariantId, items])
+
+  // Native checkbox "indeterminate" (dash) when some but not all are selected.
+  const selectAllRef = useRef(null)
+  useEffect(() => {
+    if (selectAllRef.current) selectAllRef.current.indeterminate = someSelected
+  }, [someSelected])
+
+  function toggleItem(variantId) {
+    setDeselected((prev) => {
+      const next = new Set(prev)
+      if (next.has(variantId)) next.delete(variantId)
+      else next.add(variantId)
+      return next
+    })
+  }
+
+  function toggleAll() {
+    // All selected -> clear selection; otherwise select everything.
+    setDeselected(allSelected ? new Set(items.map((i) => i.variantId)) : new Set())
+  }
 
   async function handleCheckout() {
     // Checkout runs against the server cart, which only exists once logged in.
@@ -21,17 +61,20 @@ export default function Cart() {
       navigate('/login')
       return
     }
+    if (selectedCount === 0) return
     setPlacingOrder(true)
     try {
       await flushCart() // make sure any debounced +/- writes land before we order
-      const data = await checkout()
+      // Order only the selected lines (backend must honor item_ids; see orders.js).
+      const selectedIds = selectedItems.map((i) => i.itemId).filter(Boolean)
+      const data = await checkout(selectedIds)
       // Preferred path: backend returns a Stripe Checkout Session URL. Hand the
       // browser off to Stripe's hosted payment page. Stripe then redirects to
       // success_url (/order-confirmed) on payment, or cancel_url (/cart) if
       // abandoned — so we do NOT navigate or show "order placed" ourselves here.
       const stripeUrl = data?.url || data?.checkout_url || data?.session_url
       if (stripeUrl) {
-        window.location.href = stripeUrl
+        window.location.assign(stripeUrl)
         return
       }
       // Fallback: no payment URL yet (endpoint still returns no body) — behave
@@ -81,49 +124,81 @@ export default function Cart() {
   return (
     <div className="mx-auto max-w-2xl p-4 sm:p-8">
       <h1 className="mb-6 text-2xl font-bold">Your Cart</h1>
+
+      {/* Select all */}
+      <label className="mb-4 flex cursor-pointer items-center gap-3 border-b border-gray-200 pb-4 dark:border-slate-800">
+        <input
+          ref={selectAllRef}
+          type="checkbox"
+          checked={allSelected}
+          onChange={toggleAll}
+          className="h-5 w-5 shrink-0 cursor-pointer accent-orange-500"
+          aria-label="Select all items"
+        />
+        <span className="text-sm font-medium text-slate-900 dark:text-slate-100">Select all</span>
+        <span className="ml-auto text-sm text-gray-500 dark:text-slate-400">
+          {selectedCount} of {items.length} selected
+        </span>
+      </label>
+
       <div className="flex flex-col gap-4">
         {items.map((item) => (
           <div
             key={item.variantId}
-            className="flex items-center justify-between border-b border-gray-200 pb-4 dark:border-slate-800"
+            className="flex items-center gap-3 border-b border-gray-200 pb-4 dark:border-slate-800"
           >
-            <div className="flex items-center gap-4">
-              <img src={item.image} alt={item.name} className="h-16 w-16 rounded object-cover" />
-              <div>
-                <p className="font-medium">{item.name}</p>
-                <p className="text-xs text-gray-500 dark:text-slate-400">{item.size} / {item.color}</p>
-                <div className="mt-1 flex items-center gap-2 text-sm text-gray-600 dark:text-slate-300">
-                  <button
-                    onClick={() => decreaseQuantity(item.variantId)}
-                    className="h-6 w-6 rounded border border-gray-300 hover:bg-gray-100 dark:border-slate-600 dark:hover:bg-slate-800"
-                  >
-                    −
-                  </button>
-                  <span>{item.quantity}</span>
-                  <button
-                    onClick={() => increaseQuantity(item.variantId)}
-                    className="h-6 w-6 rounded border border-gray-300 hover:bg-gray-100 dark:border-slate-600 dark:hover:bg-slate-800"
-                  >
-                    +
-                  </button>
-                  <span className="ml-2">× ${item.price}</span>
+            <input
+              type="checkbox"
+              checked={!deselected.has(item.variantId)}
+              onChange={() => toggleItem(item.variantId)}
+              className="h-5 w-5 shrink-0 cursor-pointer accent-orange-500"
+              aria-label={`Select ${item.name}`}
+            />
+            <div className="flex flex-1 items-center justify-between">
+              <div className="flex items-center gap-4">
+                <img src={item.image} alt={item.name} className="h-16 w-16 rounded object-cover" />
+                <div>
+                  <p className="font-medium">{item.name}</p>
+                  <p className="text-xs text-gray-500 dark:text-slate-400">{item.size} / {item.color}</p>
+                  <div className="mt-1 flex items-center gap-2 text-sm text-gray-600 dark:text-slate-300">
+                    <button
+                      onClick={() => decreaseQuantity(item.variantId)}
+                      className="h-6 w-6 rounded border border-gray-300 hover:bg-gray-100 dark:border-slate-600 dark:hover:bg-slate-800"
+                    >
+                      −
+                    </button>
+                    <span>{item.quantity}</span>
+                    <button
+                      onClick={() => increaseQuantity(item.variantId)}
+                      className="h-6 w-6 rounded border border-gray-300 hover:bg-gray-100 dark:border-slate-600 dark:hover:bg-slate-800"
+                    >
+                      +
+                    </button>
+                    <span className="ml-2">× ${item.price}</span>
+                  </div>
                 </div>
               </div>
+              <button
+                onClick={() => removeFromCart(item.variantId)}
+                className="text-sm text-red-600 hover:underline"
+              >
+                Remove
+              </button>
             </div>
-            <button
-              onClick={() => removeFromCart(item.variantId)}
-              className="text-sm text-red-600 hover:underline"
-            >
-              Remove
-            </button>
           </div>
         ))}
       </div>
+
       <div className="mt-8 sm:ml-auto sm:max-w-sm">
         <div className="rounded-xl border border-gray-200 p-5 dark:border-slate-800">
-          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
-            Order summary
-          </h2>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+              Order summary
+            </h2>
+            <span className="text-xs font-medium text-gray-500 dark:text-slate-400">
+              {selectedCount} {selectedCount === 1 ? 'item' : 'items'} selected
+            </span>
+          </div>
           <dl className="flex flex-col gap-2 text-sm">
             <div className="flex justify-between">
               <dt className="text-gray-600 dark:text-slate-400">Subtotal</dt>
@@ -140,10 +215,14 @@ export default function Cart() {
           </dl>
           <button
             onClick={handleCheckout}
-            disabled={placingOrder}
+            disabled={placingOrder || selectedCount === 0}
             className="mt-5 w-full rounded-lg bg-orange-500 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {placingOrder ? 'Placing order…' : 'Proceed to checkout'}
+            {placingOrder
+              ? 'Placing order…'
+              : selectedCount === 0
+                ? 'Select items to check out'
+                : `Proceed to checkout (${selectedCount})`}
           </button>
           <Link
             to="/shop"
