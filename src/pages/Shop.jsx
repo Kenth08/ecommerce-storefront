@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { getProducts } from '../api/products'
 import { getCategories } from '../api/categories'
 import { getStartingPrice } from '../utils/productHelpers'
@@ -14,7 +15,12 @@ export default function Shop() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  const [activeCategory, setActiveCategory] = useState('all') // 'all' or a category id
+  // Pre-select a category when arriving from a Home chip (/shop?category=<id>).
+  const [searchParams] = useSearchParams()
+  const categoryParam = searchParams.get('category')
+  const [activeCategory, setActiveCategory] = useState(
+    categoryParam ? Number(categoryParam) : 'all'
+  ) // 'all' or a category id
   const [query, setQuery] = useState('')
   const [sort, setSort] = useState('default')
 

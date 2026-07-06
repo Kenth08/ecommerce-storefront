@@ -106,12 +106,19 @@ export default function Home() {
               View all →
             </Link>
           </div>
-          <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 sm:gap-4 lg:grid-cols-6">
+          <div className="flex flex-wrap gap-2">
+            {/* "All" chip — filled, like the Shop page's default filter */}
+            <Link
+              to="/shop"
+              className="rounded-full border border-orange-500 bg-orange-500 px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-orange-600"
+            >
+              All
+            </Link>
             {categories.map((cat) => (
               <Link
                 key={cat.id}
-                to="/shop"
-                className="group flex h-20 items-center justify-center rounded-lg border border-gray-200 bg-white px-3 text-center text-sm font-medium text-slate-700 transition-all hover:border-orange-300 hover:text-orange-600 hover:shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-orange-500/50 dark:hover:text-orange-400"
+                to={`/shop?category=${cat.id}`}
+                className="rounded-full border border-gray-300 bg-white px-4 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:border-orange-400 hover:text-orange-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-orange-400 dark:hover:text-orange-400"
               >
                 {cat.name}
               </Link>
