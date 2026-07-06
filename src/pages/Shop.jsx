@@ -142,8 +142,8 @@ export default function Shop() {
 
       {!loading && !error && visibleProducts.length > 0 && (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
-          {visibleProducts.map((p) => (
-            <ProductCard key={p.id} product={p} />
+          {visibleProducts.map((p, i) => (
+            <ProductCard key={p.id} product={p} index={i} />
           ))}
         </div>
       )}

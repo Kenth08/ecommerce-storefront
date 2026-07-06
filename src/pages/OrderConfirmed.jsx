@@ -25,12 +25,20 @@ export default function OrderConfirmed() {
         Your order has been placed successfully. We&apos;ll send you an update as it&apos;s
         processed.
       </p>
-      <Link
-        to="/shop"
-        className="mt-2 rounded-lg bg-orange-500 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-orange-600"
-      >
-        Continue shopping
-      </Link>
+      <div className="mt-2 flex flex-col items-center gap-3 sm:flex-row">
+        <Link
+          to="/shop"
+          className="rounded-lg bg-orange-500 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-orange-600"
+        >
+          Continue shopping
+        </Link>
+        <Link
+          to="/orders"
+          className="text-sm font-medium text-orange-600 transition-colors hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300"
+        >
+          View your orders
+        </Link>
+      </div>
     </div>
   )
 }

@@ -27,7 +27,7 @@ export function WishlistProvider({ children }) {
   function toggleWishlist(product) {
     // Wishlist is an account feature — require login to save items.
     if (!user) {
-      toast('Log in to save items to your wishlist', { icon: '🔒' })
+      toast('Log in to save items to your wishlist', { icon: '🔒', id: 'wishlist' })
       return
     }
     // Decide add vs. remove OUTSIDE the state updater, so the toast fires
@@ -35,10 +35,10 @@ export function WishlistProvider({ children }) {
     const alreadyWished = items.some((p) => p.id === product.id)
     if (alreadyWished) {
       setItems((prev) => prev.filter((p) => p.id !== product.id))
-      toast(`${product.name} removed from wishlist`, { icon: '🤍' })
+      toast(`${product.name} removed from wishlist`, { icon: '🤍', id: 'wishlist' })
     } else {
       setItems((prev) => [...prev, product])
-      toast(`${product.name} added to wishlist`, { icon: '❤️' })
+      toast(`${product.name} added to wishlist`, { icon: '❤️', id: 'wishlist' })
     }
   }
 

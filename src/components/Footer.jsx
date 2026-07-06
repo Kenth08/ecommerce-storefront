@@ -22,6 +22,7 @@ export default function Footer() {
             <span className="font-medium text-white">Account</span>
             <Link to="/login" className="hover:text-orange-400">Login</Link>
             <Link to="/register" className="hover:text-orange-400">Register</Link>
+            <Link to="/orders" className="hover:text-orange-400">My Orders</Link>
             <Link to="/wishlist" className="hover:text-orange-400">Wishlist</Link>
           </div>
         </div>

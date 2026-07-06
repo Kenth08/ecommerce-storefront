@@ -13,6 +13,7 @@ import ScrollToTop from './components/ScrollToTop'
 import { Toaster } from 'react-hot-toast'
 import NotFound from './pages/NotFound'
 import OrderConfirmed from './pages/OrderConfirmed'
+import Orders from './pages/Orders'
 
 
 
@@ -52,6 +53,7 @@ function App() {
         <Route path="/wishlist" element={<Wishlist />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/order-confirmed" element={<OrderConfirmed />} />
+        <Route path="/orders" element={<Orders />} />
         <Route path="/login" element={<Login />} />
         <Route path="/product/:slug" element={<ProductDetail />} />
         <Route path="*" element={<NotFound />} />

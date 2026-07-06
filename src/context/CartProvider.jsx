@@ -148,7 +148,7 @@ export function CartProvider({ children }) {
       await cartApi.addCartItem(variant.id, quantity)
       await refreshServerCart()
     } catch {
-      toast.error('Could not add to cart.')
+      toast.error('Could not add to cart.', { id: 'cart' })
     }
   }
 
@@ -163,7 +163,7 @@ export function CartProvider({ children }) {
       await cartApi.removeCartItem(item.itemId)
       await refreshServerCart()
     } catch {
-      toast.error('Could not update cart.')
+      toast.error('Could not update cart.', { id: 'cart' })
     }
   }
 
@@ -182,7 +182,7 @@ export function CartProvider({ children }) {
       await cartApi.updateCartItem(item.itemId, item.quantity + 1)
       await refreshServerCart()
     } catch {
-      toast.error('Could not update cart.')
+      toast.error('Could not update cart.', { id: 'cart' })
     }
   }
 
@@ -207,7 +207,7 @@ export function CartProvider({ children }) {
       }
       await refreshServerCart()
     } catch {
-      toast.error('Could not update cart.')
+      toast.error('Could not update cart.', { id: 'cart' })
     }
   }
 

@@ -27,6 +27,7 @@ export default function ProductDetail() {
   const [quantity, setQuantity] = useState(1)
   const [activeImageIdx, setActiveImageIdx] = useState(0)
   const [added, setAdded] = useState(false)
+  const [buying, setBuying] = useState(false)
   const [prevSlug, setPrevSlug] = useState(slug)
 
   useDocumentTitle(product?.name)
@@ -54,7 +55,7 @@ export default function ProductDetail() {
   if (loading) {
     return (
       <div className="mx-auto flex max-w-4xl flex-col gap-6 p-4 sm:flex-row sm:gap-10 sm:p-8">
-        <div className="aspect-square w-full animate-pulse rounded-lg bg-gray-200 dark:bg-slate-700sm:w-1/2" />
+        <div className="aspect-square w-full animate-pulse rounded-lg bg-gray-200 dark:bg-slate-700 sm:w-1/2" />
         <div className="flex flex-1 flex-col gap-4">
           <div className="h-8 w-3/4 animate-pulse rounded bg-gray-200" />
           <div className="h-6 w-1/3 animate-pulse rounded bg-gray-200" />
@@ -64,7 +65,7 @@ export default function ProductDetail() {
             <div className="h-9 w-14 animate-pulse rounded bg-gray-200" />
             <div className="h-9 w-14 animate-pulse rounded bg-gray-200" />
           </div>
-          <div className="mt-4 h-12 w-full animate-pulse rounded-md bg-gray-200 dark:bg-slate-700sm:w-40" />
+          <div className="mt-4 h-12 w-full animate-pulse rounded-md bg-gray-200 dark:bg-slate-700 sm:w-40" />
         </div>
       </div>
     )
@@ -102,9 +103,22 @@ export default function ProductDetail() {
   function handleAddToCart() {
     if (!selectedVariant) return
     addToCart(product, selectedVariant, quantity)
-    toast.success(`${quantity} × ${product.name} added to cart`)
+    toast.success(`${quantity} × ${product.name} added to cart`, { id: 'cart' })
     setAdded(true)
     setTimeout(() => setAdded(false), 1500)
+  }
+
+  // Add the item, then go straight to the cart. Awaited so the logged-in
+  // (server) cart has the item before the cart page loads.
+  async function handleBuyNow() {
+    if (!selectedVariant || buying) return
+    setBuying(true)
+    try {
+      await addToCart(product, selectedVariant, quantity)
+      navigate('/cart')
+    } finally {
+      setBuying(false)
+    }
   }
 
   return (
@@ -269,15 +283,24 @@ export default function ProductDetail() {
           </div>
         )}
 
-        <button
-          onClick={handleAddToCart}
-          disabled={!selectedVariant || selectedVariant.stock === 0}
-          className={`mt-4 w-full rounded-md px-6 py-3 font-medium text-white transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40 sm:w-fit ${
-            added ? 'scale-105 bg-green-600' : 'bg-orange-500 hover:bg-orange-600'
-          }`}
-        >
-          {added ? 'Added ✓' : 'Add to Cart'}
-        </button>
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+          <button
+            onClick={handleAddToCart}
+            disabled={!selectedVariant || selectedVariant.stock === 0 || buying}
+            className={`w-full rounded-md px-6 py-3 font-medium text-white transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40 sm:flex-1 ${
+              added ? 'scale-105 bg-green-600' : 'bg-orange-500 hover:bg-orange-600'
+            }`}
+          >
+            {added ? 'Added ✓' : 'Add to Cart'}
+          </button>
+          <button
+            onClick={handleBuyNow}
+            disabled={!selectedVariant || selectedVariant.stock === 0 || buying}
+            className="w-full rounded-md border border-slate-900 bg-slate-900 px-6 py-3 font-medium text-white transition-colors duration-200 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40 sm:flex-1 dark:border-slate-100 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
+          >
+            {buying ? 'Processing…' : 'Buy Now'}
+          </button>
+        </div>
           </>
         )}
       </div>
