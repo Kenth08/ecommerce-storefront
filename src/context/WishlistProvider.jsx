@@ -24,6 +24,18 @@ export function WishlistProvider({ children }) {
     return items.some((p) => p.id === productId)
   }
 
+  // Idempotent add — used when the fly-to-nav preview lands. Safe to call
+  // twice (a rapid double-click won't create a duplicate entry).
+  function addToWishlist(product) {
+    if (!user) {
+      toast('Log in to save items to your wishlist', { icon: '🔒', id: 'wishlist' })
+      return
+    }
+    if (items.some((p) => p.id === product.id)) return
+    setItems((prev) => [...prev, product])
+    toast(`${product.name} added to wishlist`, { icon: '❤️', id: 'wishlist' })
+  }
+
   function toggleWishlist(product) {
     // Wishlist is an account feature — require login to save items.
     if (!user) {
@@ -47,7 +59,7 @@ export function WishlistProvider({ children }) {
   }
 
   return (
-    <WishlistContext.Provider value={{ items, isWished, toggleWishlist, removeFromWishlist }}>
+    <WishlistContext.Provider value={{ items, isWished, toggleWishlist, addToWishlist, removeFromWishlist }}>
       {children}
     </WishlistContext.Provider>
   )

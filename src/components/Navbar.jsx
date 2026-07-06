@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
+import { motion, useAnimationControls } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import { useWishlist } from '../context/WishlistContext'
+import { useFly } from '../context/FlyContext'
 import toast from 'react-hot-toast'
 import logoIcon from '../assets/logo-icon.png'
 import ThemeToggle from './ThemeToggle'
@@ -11,8 +13,37 @@ export default function Navbar() {
   const { user, logout } = useAuth()
   const { items } = useCart()
   const { items: wishlistItems } = useWishlist()
+  const { bump, registerTarget } = useFly()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
+
+  // The nav heart/cart icons are the fly-animation targets.
+  const heartRef = useRef(null)
+  const cartRef = useRef(null)
+  const heartControls = useAnimationControls()
+  const cartControls = useAnimationControls()
+
+  useEffect(() => {
+    registerTarget('wishlist', heartRef.current)
+    registerTarget('cart', cartRef.current)
+    return () => {
+      registerTarget('wishlist', null)
+      registerTarget('cart', null)
+    }
+  }, [registerTarget])
+
+  // Pop/bounce the icon each time a flying preview lands on it.
+  useEffect(() => {
+    if (bump.wishlist > 0) {
+      heartControls.start({ scale: [1, 1.5, 0.9, 1], transition: { duration: 0.45 } })
+    }
+  }, [bump.wishlist, heartControls])
+
+  useEffect(() => {
+    if (bump.cart > 0) {
+      cartControls.start({ scale: [1, 1.5, 0.9, 1], transition: { duration: 0.45 } })
+    }
+  }, [bump.cart, cartControls])
 
   const cartCount = items.reduce((sum, item) => sum + item.quantity, 0)
   const wishlistCount = wishlistItems.length
@@ -93,16 +124,18 @@ export default function Navbar() {
               `relative transition-colors hover:text-orange-400 ${isActive ? 'text-orange-400' : 'text-gray-300'}`
             }
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.8}
-              stroke="currentColor"
-              className="h-7 w-7"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-            </svg>
+            <motion.span ref={heartRef} animate={heartControls} className="inline-flex origin-center">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.8}
+                stroke="currentColor"
+                className="h-7 w-7"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+              </svg>
+            </motion.span>
             {wishlistCount > 0 && (
               <span className="absolute -right-2 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-orange-500 px-1 text-xs font-semibold text-white">
                 {wishlistCount > 99 ? '99+' : wishlistCount}
@@ -117,16 +150,18 @@ export default function Navbar() {
               `group relative transition-colors hover:text-orange-400 ${isActive ? 'text-orange-400' : 'text-gray-300'}`
             }
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.8}
-              stroke="currentColor"
-              className="h-7 w-7 origin-top transition-transform group-hover:animate-shake"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
-            </svg>
+            <motion.span ref={cartRef} animate={cartControls} className="inline-flex origin-center">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.8}
+                stroke="currentColor"
+                className="h-7 w-7 origin-top transition-transform group-hover:animate-shake"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+              </svg>
+            </motion.span>
             {cartCount > 0 && (
               <span className="absolute -right-2 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-orange-500 px-1 text-xs font-semibold text-white">
                 {cartCount > 99 ? '99+' : cartCount}

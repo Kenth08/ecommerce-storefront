@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { getProduct } from '../api/products'
 import { useCart } from '../context/CartContext'
 import { useWishlist } from '../context/WishlistContext'
+import { useFly } from '../context/FlyContext'
 import { getPrimaryImage, getActiveVariants } from '../utils/productHelpers'
 import useDocumentTitle from '../hooks/useDocumentTitle'
 
@@ -12,6 +13,8 @@ export default function ProductDetail() {
   const navigate = useNavigate()
   const location = useLocation()
   const { addToCart } = useCart()
+  const { flyToNavIcon } = useFly()
+  const productImageRef = useRef(null)
 
   // Return to the previous page; fall back to Shop on a direct load (no history).
   function handleBack() {
@@ -100,12 +103,21 @@ export default function ProductDetail() {
 
   const maxQuantity = selectedVariant?.stock ?? 1
 
-  function handleAddToCart() {
+  function handleAddToCart(e) {
     if (!selectedVariant) return
-    addToCart(product, selectedVariant, quantity)
-    toast.success(`${quantity} × ${product.name} added to cart`, { id: 'cart' })
     setAdded(true)
     setTimeout(() => setAdded(false), 1500)
+    // Fly the whole product image to the navbar cart, then add when it lands.
+    const startRect = (productImageRef.current ?? e.currentTarget).getBoundingClientRect()
+    flyToNavIcon({
+      product,
+      startRect,
+      targetType: 'cart',
+      onArrive: () => {
+        addToCart(product, selectedVariant, quantity)
+        toast.success(`${quantity} × ${product.name} added to cart`, { id: 'cart' })
+      },
+    })
   }
 
   // Add the item, then go straight to the cart. Awaited so the logged-in
@@ -159,6 +171,7 @@ export default function ProductDetail() {
         {/* Gallery */}
         <div className="sm:w-1/2">
           <img
+            ref={productImageRef}
             src={mainImage}
             alt={product.name}
             className="aspect-square w-full rounded-lg object-cover"

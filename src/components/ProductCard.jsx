@@ -1,14 +1,36 @@
+import { useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { getPrimaryImage, getStartingPrice } from '../utils/productHelpers'
 import { useWishlist } from '../context/WishlistContext'
+import { useAuth } from '../context/AuthContext'
+import { useFly } from '../context/FlyContext'
 
 export default function ProductCard({ product, index = 0 }) {
   const price = getStartingPrice(product)
-  const { isWished, toggleWishlist } = useWishlist()
+  const { isWished, toggleWishlist, addToWishlist } = useWishlist()
+  const { user } = useAuth()
+  const { flyToNavIcon } = useFly()
+  const imageRef = useRef(null)
   const wished = isWished(product.id)
 
-  function handleWishlist() {
-    toggleWishlist(product)
+  function handleWishlist(e) {
+    // Keep the heart from triggering the card's product link.
+    e.preventDefault()
+    e.stopPropagation()
+
+    // Not logged in, or removing a favorite: no fly, just toggle.
+    if (!user || wished) {
+      toggleWishlist(product)
+      return
+    }
+    // Adding: fly the whole product image to the navbar heart, then add on land.
+    const startRect = (imageRef.current ?? e.currentTarget).getBoundingClientRect()
+    flyToNavIcon({
+      product,
+      startRect,
+      targetType: 'wishlist',
+      onArrive: () => addToWishlist(product),
+    })
   }
 
   return (
@@ -35,7 +57,7 @@ export default function ProductCard({ product, index = 0 }) {
       </button>
 
       <Link to={`/product/${product.slug}`} className="flex flex-1 flex-col">
-        <div className="aspect-square overflow-hidden bg-gray-100 dark:bg-slate-800">
+        <div ref={imageRef} className="aspect-square overflow-hidden bg-gray-100 dark:bg-slate-800">
           <img
             src={getPrimaryImage(product)}
             alt={product.name}
