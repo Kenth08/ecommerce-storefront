@@ -3,11 +3,13 @@ import { api } from './client'
 /**
  * Orders API layer.
  *
- * checkout() converts the authenticated user's current server cart into an
- * order. The backend endpoint takes no request body and returns 200 with no
- * response body — it reads the cart tied to the logged-in user, creates the
- * order, and empties the cart server-side.
+ * checkout() turns the authenticated user's server cart into an order and
+ * starts payment. The backend creates a Stripe Checkout Session and returns
+ * { url: <stripe hosted checkout page> }; the caller redirects the browser
+ * there. Stripe then sends the user to success_url / cancel_url, and a
+ * backend webhook marks the order paid + empties the cart.
  *
+ * (Falls back gracefully if the endpoint returns no url — see Cart.jsx.)
  * Requires authentication (the api client attaches the bearer token).
  */
 export function checkout() {

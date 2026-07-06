@@ -8,7 +8,7 @@ import useDocumentTitle from '../hooks/useDocumentTitle'
 
 export default function Cart() {
   useDocumentTitle('Your Cart')
-  const { items, removeFromCart, increaseQuantity, decreaseQuantity, refreshCart } = useCart()
+  const { items, removeFromCart, increaseQuantity, decreaseQuantity, refreshCart, flushCart } = useCart()
   const { user } = useAuth()
   const navigate = useNavigate()
   const [placingOrder, setPlacingOrder] = useState(false)
@@ -23,12 +23,31 @@ export default function Cart() {
     }
     setPlacingOrder(true)
     try {
-      await checkout()
+      await flushCart() // make sure any debounced +/- writes land before we order
+      const data = await checkout()
+      // Preferred path: backend returns a Stripe Checkout Session URL. Hand the
+      // browser off to Stripe's hosted payment page. Stripe then redirects to
+      // success_url (/order-confirmed) on payment, or cancel_url (/cart) if
+      // abandoned — so we do NOT navigate or show "order placed" ourselves here.
+      const stripeUrl = data?.url || data?.checkout_url || data?.session_url
+      if (stripeUrl) {
+        window.location.href = stripeUrl
+        return
+      }
+      // Fallback: no payment URL yet (endpoint still returns no body) — behave
+      // as a direct order placement, the previous behavior.
       await refreshCart() // cart is emptied server-side after a successful order
       toast.success('Order placed!')
       navigate('/order-confirmed')
-    } catch {
-      toast.error('Could not place your order. Please try again.')
+    } catch (err) {
+      // Surface the backend's real reason (empty cart, out of stock, auth, …)
+      // instead of a generic message, so failures are diagnosable.
+      const data = err.response?.data
+      const detail =
+        data?.detail || data?.error || data?.message ||
+        (typeof data === 'string' ? data : null)
+      console.error('Checkout failed:', err.response?.status, data ?? err.message)
+      toast.error(detail || 'Could not place your order. Please try again.')
     } finally {
       setPlacingOrder(false)
     }

@@ -54,6 +54,11 @@ export function CartProvider({ children }) {
   const [items, setItems] = useState(() => readJSON(GUEST_CART_KEY, []))
   const [loading, setLoading] = useState(false)
   const syncedUserRef = useRef(null)
+  // Debounced server sync for +/- quantity changes (logged-in cart):
+  // pendingQty holds the running target quantity per cart-item, syncTimers the
+  // pending write. Lets the UI update instantly while the server catches up.
+  const pendingQty = useRef({})
+  const syncTimers = useRef({})
 
   // Persist ONLY the guest cart to localStorage (never the server cart).
   useEffect(() => {
@@ -147,7 +152,8 @@ export function CartProvider({ children }) {
     try {
       await cartApi.addCartItem(variant.id, quantity)
       await refreshServerCart()
-    } catch {
+    } catch (err) {
+      console.error('Add to cart failed:', err.response?.status, err.response?.data ?? err.message)
       toast.error('Could not add to cart.', { id: 'cart' })
     }
   }
@@ -167,7 +173,61 @@ export function CartProvider({ children }) {
     }
   }
 
-  async function increaseQuantity(variantId) {
+  // Push a logged-in item's final quantity to the server after a short idle
+  // gap, so a burst of +/- clicks becomes ONE request (with the last value)
+  // instead of one slow round-trip per click.
+  function scheduleQtySync(itemId) {
+    clearTimeout(syncTimers.current[itemId])
+    syncTimers.current[itemId] = setTimeout(async () => {
+      delete syncTimers.current[itemId]
+      const qty = pendingQty.current[itemId]
+      delete pendingQty.current[itemId]
+      if (qty == null) return
+      try {
+        if (qty <= 0) await cartApi.removeCartItem(itemId)
+        else await cartApi.updateCartItem(itemId, qty)
+      } catch {
+        toast.error('Could not update cart.', { id: 'cart' })
+        refreshServerCart() // reconcile the UI with the server on failure
+      }
+    }, 400)
+  }
+
+  // Force any debounced quantity writes to run NOW and wait for them. Called
+  // before acting on the server cart (checkout) so it isn't read mid-update.
+  // allSettled: a failed write must never block checkout — worst case the
+  // order uses the server's current quantity, which we then surface normally.
+  async function flushQtySync() {
+    const ids = Object.keys(pendingQty.current)
+    await Promise.allSettled(
+      ids.map((itemId) => {
+        clearTimeout(syncTimers.current[itemId])
+        delete syncTimers.current[itemId]
+        const qty = pendingQty.current[itemId]
+        delete pendingQty.current[itemId]
+        if (qty == null) return Promise.resolve()
+        return qty <= 0 ? cartApi.removeCartItem(itemId) : cartApi.updateCartItem(itemId, qty)
+      })
+    )
+  }
+
+  // Optimistically change a logged-in item's quantity: move the number now,
+  // sync in the background. pendingQty (not React state) is the running source
+  // of truth, so rapid clicks compute the correct final value without races.
+  function changeServerQty(variantId, delta) {
+    const item = findItem(variantId)
+    if (!item?.itemId) return
+    const newQty = (pendingQty.current[item.itemId] ?? item.quantity) + delta
+    pendingQty.current[item.itemId] = newQty
+    setItems((prev) =>
+      prev
+        .map((it) => (it.itemId === item.itemId ? { ...it, quantity: newQty } : it))
+        .filter((it) => it.quantity > 0)
+    )
+    scheduleQtySync(item.itemId)
+  }
+
+  function increaseQuantity(variantId) {
     if (!user) {
       setItems((prev) =>
         prev.map((item) =>
@@ -176,17 +236,10 @@ export function CartProvider({ children }) {
       )
       return
     }
-    const item = findItem(variantId)
-    if (!item?.itemId) return
-    try {
-      await cartApi.updateCartItem(item.itemId, item.quantity + 1)
-      await refreshServerCart()
-    } catch {
-      toast.error('Could not update cart.', { id: 'cart' })
-    }
+    changeServerQty(variantId, 1)
   }
 
-  async function decreaseQuantity(variantId) {
+  function decreaseQuantity(variantId) {
     if (!user) {
       setItems((prev) =>
         prev
@@ -197,18 +250,7 @@ export function CartProvider({ children }) {
       )
       return
     }
-    const item = findItem(variantId)
-    if (!item?.itemId) return
-    try {
-      if (item.quantity <= 1) {
-        await cartApi.removeCartItem(item.itemId)
-      } else {
-        await cartApi.updateCartItem(item.itemId, item.quantity - 1)
-      }
-      await refreshServerCart()
-    } catch {
-      toast.error('Could not update cart.', { id: 'cart' })
-    }
+    changeServerQty(variantId, -1)
   }
 
   return (
@@ -221,6 +263,7 @@ export function CartProvider({ children }) {
         increaseQuantity,
         decreaseQuantity,
         refreshCart: refreshServerCart,
+        flushCart: flushQtySync,
       }}
     >
       {children}
