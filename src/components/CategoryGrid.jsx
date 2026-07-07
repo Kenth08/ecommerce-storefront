@@ -23,11 +23,18 @@ const LOCAL_ICONS = [
   { match: /bag|handbag|purse/i, src: '/images/categories/mens-bags.jpg', photo: true },
   { match: /accessor/i, src: '/images/categories/womens-accessories.jpg', photo: true },
   { match: /makeup|fragrance|cosmetic/i, src: '/images/categories/makeup-fragrances.jpg', photo: true },
+  { match: /pet/i, src: '/images/categories/pet-care.jpg', photo: true },
   { match: /health|personal care/i, src: '/images/categories/health-personal-care.jpg', photo: true },
   { match: /bab(y|ies)|kids|infant/i, src: '/images/categories/babies-kids.jpg', photo: true },
   { match: /grocer|food/i, src: '/images/categories/groceries.jpg', photo: true },
+  { match: /gaming|console/i, src: '/images/categories/gaming.jpg', photo: true },
   { match: /toy|game|collectible/i, src: '/images/categories/toys-games.jpg', photo: true },
+  { match: /audio|headphone|speaker|earbud/i, src: '/images/categories/audio.jpg', photo: true },
+  { match: /motor|automotive/i, src: '/images/categories/motors.jpg', photo: true },
+  { match: /hobb|stationery|craft/i, src: '/images/categories/hobbies-stationery.jpg', photo: true },
   { match: /sport|travel/i, src: '/images/categories/sports-travel.jpg', photo: true },
+  // Women's Shoes must precede the generic shoe rule (which maps to men's).
+  { match: /women.*shoe/i, src: '/images/categories/womens-shoes.jpg', photo: true },
   { match: /shoe|sneaker|footwear/i, src: '/images/categories/mens-shoes.jpg', photo: true },
   // Line-icon fallback for any category without a photo (rendered padded).
   { match: /shirt|tee|top/i, src: '/images/categories/shirts.svg' },
@@ -45,7 +52,20 @@ function resolveCategory(cat) {
   return { src: DEFAULT_ICON, isIcon: true }
 }
 
-export default function CategoryGrid({ categories }) {
+/**
+ * Category image grid. Two modes:
+ *  - Default (home): each tile is a <Link> to /shop?category=<id>.
+ *  - Filter mode (Shop): pass `onSelect` + `activeId` — tiles become buttons
+ *    that filter in place and highlight the active category.
+ */
+export default function CategoryGrid({
+  categories,
+  activeId = null,
+  onSelect = null,
+  title = 'Shop by Category',
+  showViewAll = true,
+}) {
+  const embedded = Boolean(onSelect)
   const scrollRef = useRef(null)
   // Track scroll position so we can hide an arrow at each end.
   const [atStart, setAtStart] = useState(true)
@@ -76,16 +96,20 @@ export default function CategoryGrid({ categories }) {
     'absolute top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-gray-200 bg-white text-slate-700 shadow-md transition-colors hover:border-orange-400 hover:text-orange-500 sm:flex dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-orange-400 dark:hover:text-orange-400'
 
   return (
-    <section className="mx-auto max-w-6xl px-4 pt-12 sm:px-8 sm:pt-16">
-      <div className="mb-5 flex items-end justify-between">
-        <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl dark:text-slate-100">Shop by Category</h2>
-        <Link
-          to="/shop"
-          className="shrink-0 text-sm font-semibold text-orange-600 transition-colors hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300"
-        >
-          View all →
-        </Link>
-      </div>
+    <section className={embedded ? 'scroll-mt-24' : 'mx-auto max-w-6xl scroll-mt-24 px-4 pt-12 sm:px-8 sm:pt-16'}>
+      {title && (
+        <div className="mb-5 flex items-end justify-between">
+          <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl dark:text-slate-100">{title}</h2>
+          {showViewAll && (
+            <Link
+              to="/shop"
+              className="shrink-0 text-sm font-semibold text-orange-600 transition-colors hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300"
+            >
+              View all →
+            </Link>
+          )}
+        </div>
+      )}
 
       <div className="relative">
         {/* Prev arrow */}
@@ -109,18 +133,21 @@ export default function CategoryGrid({ categories }) {
         <div
           ref={scrollRef}
           onScroll={updateArrows}
-          className="grid auto-cols-max grid-flow-col grid-rows-2 gap-x-5 gap-y-6 overflow-x-auto scroll-smooth pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="grid snap-x auto-cols-max grid-flow-col grid-rows-2 gap-x-6 gap-y-7 overflow-x-auto scroll-smooth scroll-px-4 pb-2 pr-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {categories.map((cat) => {
             const { src, isIcon } = resolveCategory(cat)
-            return (
-              <Link
-                key={cat.id}
-                to={`/shop?category=${cat.id}`}
-                className="group flex w-24 flex-col items-center gap-2 text-center sm:w-28"
-                aria-label={`Shop ${cat.name}`}
-              >
-                <span className="flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-100 transition-all duration-200 group-hover:-translate-y-1 group-hover:border-orange-400 group-hover:shadow-md dark:border-slate-700 dark:bg-slate-800 dark:group-hover:border-orange-400">
+            const active = activeId != null && cat.id === activeId
+            const wrapperClass = 'group flex w-24 snap-start flex-col items-center gap-2 text-center sm:w-28'
+            const tile = (
+              <>
+                <span
+                  className={`flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl border bg-gray-100 transition-all duration-200 group-hover:-translate-y-1 group-hover:shadow-md dark:bg-slate-800 ${
+                    active
+                      ? 'border-orange-500 ring-2 ring-orange-400/60 dark:border-orange-500'
+                      : 'border-gray-200 group-hover:border-orange-400 dark:border-slate-700 dark:group-hover:border-orange-400'
+                  }`}
+                >
                   <img
                     src={src}
                     alt=""
@@ -130,9 +157,31 @@ export default function CategoryGrid({ categories }) {
                     }`}
                   />
                 </span>
-                <span className="line-clamp-2 text-xs font-medium text-slate-700 transition-colors group-hover:text-orange-600 sm:text-sm dark:text-slate-300 dark:group-hover:text-orange-400">
+                <span
+                  className={`line-clamp-2 text-xs font-medium transition-colors sm:text-sm ${
+                    active
+                      ? 'font-semibold text-orange-600 dark:text-orange-400'
+                      : 'text-slate-700 group-hover:text-orange-600 dark:text-slate-300 dark:group-hover:text-orange-400'
+                  }`}
+                >
                   {cat.name}
                 </span>
+              </>
+            )
+            return onSelect ? (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => onSelect(cat.id)}
+                aria-pressed={active}
+                aria-label={`Filter by ${cat.name}`}
+                className={wrapperClass}
+              >
+                {tile}
+              </button>
+            ) : (
+              <Link key={cat.id} to={`/shop?category=${cat.id}`} className={wrapperClass} aria-label={`Shop ${cat.name}`}>
+                {tile}
               </Link>
             )
           })}

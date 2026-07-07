@@ -2,12 +2,14 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <!-- Apply saved/system theme before paint to avoid a flash of the wrong theme. -->
+    <!-- Apply saved theme before paint to avoid a flash of the wrong theme.
+         Default is LIGHT — dark only when the user explicitly chose it. The key
+         was renamed to 'ecomify-theme' so any previously saved 'dark' preference
+         is ignored, resetting everyone to the light default once. -->
     <script>
       (function () {
         try {
-          var t = localStorage.getItem('theme')
-          if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          if (localStorage.getItem('ecomify-theme') === 'dark') {
             document.documentElement.classList.add('dark')
           }
         } catch (e) {}

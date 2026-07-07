@@ -2,8 +2,16 @@ import { useRef, useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
-import { getPrimaryImage, getStartingPrice, getActiveVariants } from '../utils/productHelpers'
+import { getPrimaryImage, getStartingPrice, getActiveVariants, getProductBadge } from '../utils/productHelpers'
 import { getRating } from '../utils/rating'
+
+// Small badge color per tone — orange stays the brand/sale accent.
+const BADGE_TONES = {
+  sale: 'bg-orange-500 text-white',
+  bestseller: 'bg-amber-500 text-white',
+  new: 'bg-emerald-500 text-white',
+  shipping: 'bg-slate-900/85 text-white ring-1 ring-white/15',
+}
 import { useWishlist } from '../context/WishlistContext'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
@@ -27,6 +35,7 @@ export default function ProductCard({ product, index = 0 }) {
   const addingCartRef = useRef(false)
   const [quickOpen, setQuickOpen] = useState(false)
   const wished = isWished(product.id)
+  const badge = getProductBadge(product)
 
   function handleWishlist(e) {
     // Keep the heart from triggering the card's product link.
@@ -101,6 +110,14 @@ export default function ProductCard({ product, index = 0 }) {
       whileHover={{ y: -6, transition: { type: 'spring', stiffness: 300, damping: 22 } }}
       className="group relative flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-shadow hover:border-orange-300 hover:shadow-lg dark:border-slate-800 dark:bg-slate-900 dark:shadow-none dark:hover:border-orange-500/40 dark:hover:shadow-black/40"
     >
+      {badge && (
+        <span
+          className={`absolute left-2 top-2 z-10 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide shadow-sm ${BADGE_TONES[badge.tone]}`}
+        >
+          {badge.label}
+        </span>
+      )}
+
       <button
         onClick={handleWishlist}
         aria-label={wished ? 'Remove from wishlist' : 'Add to wishlist'}
@@ -128,10 +145,13 @@ export default function ProductCard({ product, index = 0 }) {
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
         </div>
-        <div className="flex flex-col gap-1.5 p-4 pb-2">
-          <h3 className="line-clamp-1 text-base font-medium text-gray-900 sm:text-lg dark:text-slate-100">{product.name}</h3>
+        <div className="flex flex-1 flex-col gap-1.5 p-4 pb-2">
+          {/* Reserve 2 lines so rating/price/buttons align across all cards. */}
+          <h3 className="line-clamp-2 min-h-11 text-sm font-medium leading-snug text-gray-900 sm:min-h-12 sm:text-base dark:text-slate-100">
+            {product.name}
+          </h3>
           <StarRating value={rating.value} count={rating.count} />
-          <p className="text-sm font-semibold text-gray-900 sm:text-base dark:text-slate-100">
+          <p className="mt-auto text-sm font-semibold text-gray-900 sm:text-base dark:text-slate-100">
             {price !== null ? `From $${price.toFixed(2)}` : 'Unavailable'}
           </p>
         </div>
