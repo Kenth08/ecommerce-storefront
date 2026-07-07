@@ -1,4 +1,4 @@
-import { api } from './client'
+import { api, fetchAllPages } from './client'
 
 /**
  * Orders API layer.
@@ -55,9 +55,6 @@ function mapOrder(order) {
 }
 
 export function getOrders() {
-  return api.get('/orders/').then((res) => {
-    // Tolerate either a bare array or a paginated { results: [...] } response.
-    const list = Array.isArray(res.data) ? res.data : (res.data?.results ?? [])
-    return list.map(mapOrder)
-  })
+  // All pages, so a user with more than 12 orders sees their full history.
+  return fetchAllPages('/orders/').then((list) => list.map(mapOrder))
 }

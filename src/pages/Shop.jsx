@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { getProducts } from '../api/products'
+import { getAllProducts } from '../api/products'
 import { getCategories } from '../api/categories'
 import { getStartingPrice, getActiveVariants } from '../utils/productHelpers'
 import { getRating } from '../utils/rating'
@@ -28,6 +28,9 @@ export default function Shop() {
   // grid live. `?q=` is also used by "Buy Again" on the Orders page.
   const query = searchParams.get('q') ?? ''
   const [sort, setSort] = useState('default')
+  // How many of the filtered products to render at once (client-side "Show more"
+  // keeps the grid smooth even with the full 175-product catalog loaded).
+  const [visibleCount, setVisibleCount] = useState(24)
 
   // Filter drawer state.
   const [filtersOpen, setFiltersOpen] = useState(false)
@@ -69,7 +72,7 @@ export default function Shop() {
 
   useEffect(() => {
     // Fetch both in parallel; the page still works if categories fail.
-    Promise.all([getProducts(), getCategories().catch(() => [])])
+    Promise.all([getAllProducts(), getCategories().catch(() => [])])
       .then(([productsData, categoriesData]) => {
         setProducts(productsData)
         setCategories(categoriesData)
@@ -246,11 +249,23 @@ export default function Shop() {
       )}
 
       {!loading && !error && visibleProducts.length > 0 && (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
-          {visibleProducts.map((p, i) => (
-            <ProductCard key={p.id} product={p} index={i} />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
+            {visibleProducts.slice(0, visibleCount).map((p, i) => (
+              <ProductCard key={p.id} product={p} index={i} />
+            ))}
+          </div>
+          {visibleProducts.length > visibleCount && (
+            <div className="mt-8 flex justify-center">
+              <button
+                onClick={() => setVisibleCount((c) => c + 24)}
+                className="rounded-lg border border-gray-300 px-6 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:border-orange-400 hover:text-orange-500 dark:border-slate-700 dark:text-slate-200 dark:hover:border-orange-400 dark:hover:text-orange-400"
+              >
+                Show more ({visibleProducts.length - visibleCount} left)
+              </button>
+            </div>
+          )}
+        </>
       )}
 
       {/* Filter drawer */}

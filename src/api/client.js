@@ -63,3 +63,25 @@ api.interceptors.response.use(
     return Promise.reject(error)
   }
 )
+
+/**
+ * Fetch EVERY page of a DRF-paginated list endpoint and return one combined
+ * array. Works whether the endpoint is paginated ({ count, results }) or still
+ * a bare array. Page 1 is fetched first (to learn the total), then the
+ * remaining pages are fetched in parallel for speed.
+ */
+export async function fetchAllPages(path) {
+  const { data } = await api.get(path)
+  if (Array.isArray(data)) return data // endpoint not paginated
+  const results = [...(data?.results ?? [])]
+  const count = data?.count ?? results.length
+  const pageSize = results.length
+  if (!pageSize || count <= pageSize) return results
+  const totalPages = Math.ceil(count / pageSize)
+  const rest = await Promise.all(
+    Array.from({ length: totalPages - 1 }, (_, i) =>
+      api.get(path, { params: { page: i + 2 } }).then((r) => r.data?.results ?? [])
+    )
+  )
+  return results.concat(...rest)
+}

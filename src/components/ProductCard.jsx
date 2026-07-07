@@ -108,7 +108,7 @@ export default function ProductCard({ product, index = 0 }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: 'easeOut', delay: Math.min(index, 11) * 0.06 }}
       whileHover={{ y: -6, transition: { type: 'spring', stiffness: 300, damping: 22 } }}
-      className="group relative flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-shadow hover:border-orange-300 hover:shadow-lg dark:border-slate-800 dark:bg-slate-900 dark:shadow-none dark:hover:border-orange-500/40 dark:hover:shadow-black/40"
+      className="group relative flex flex-col self-start overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-shadow hover:border-orange-300 hover:shadow-lg dark:border-slate-800 dark:bg-slate-900 dark:shadow-none dark:hover:border-orange-500/40 dark:hover:shadow-black/40"
     >
       {badge && (
         <span
@@ -136,7 +136,7 @@ export default function ProductCard({ product, index = 0 }) {
         </svg>
       </button>
 
-      <Link to={`/product/${product.slug}`} className="flex flex-1 flex-col">
+      <Link to={`/product/${product.slug}`} className="flex flex-col">
         <div ref={imageRef} className="aspect-square overflow-hidden bg-gray-100 dark:bg-slate-800">
           <img
             src={getPrimaryImage(product)}
@@ -145,13 +145,14 @@ export default function ProductCard({ product, index = 0 }) {
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
         </div>
-        <div className="flex flex-1 flex-col gap-1.5 p-4 pb-2">
-          {/* Reserve 2 lines so rating/price/buttons align across all cards. */}
-          <h3 className="line-clamp-2 min-h-11 text-sm font-medium leading-snug text-gray-900 sm:min-h-12 sm:text-base dark:text-slate-100">
+        <div className="flex flex-col gap-1 px-3 pb-1 pt-2.5">
+          {/* Reserve 2 lines so every card is the same height regardless of
+              how long the product name is. */}
+          <h3 className="line-clamp-2 min-h-10 text-sm font-medium leading-snug text-gray-900 sm:min-h-11 sm:text-base dark:text-slate-100">
             {product.name}
           </h3>
           <StarRating value={rating.value} count={rating.count} />
-          <p className="mt-auto text-sm font-semibold text-gray-900 sm:text-base dark:text-slate-100">
+          <p className="text-sm font-semibold text-gray-900 sm:text-base dark:text-slate-100">
             {price !== null ? `From $${price.toFixed(2)}` : 'Unavailable'}
           </p>
         </div>
@@ -159,7 +160,7 @@ export default function ProductCard({ product, index = 0 }) {
 
       {/* Actions — on narrow cards the Add button is icon-only (label returns at
           sm+), so it never wraps to 3 lines and stays a clean, tappable size. */}
-      <div className="flex items-stretch gap-2 px-3 pb-4 pt-1 sm:px-4">
+      <div className="flex items-stretch gap-2 px-3 pb-3 pt-2 sm:px-4">
         <motion.button
           whileTap={{ scale: 0.96 }}
           onClick={handleAddToCart}

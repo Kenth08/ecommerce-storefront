@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import ReviewFormModal from './ReviewFormModal'
 
 // Short, readable date; empty string if the backend omits it.
 function formatDate(iso) {
@@ -34,6 +35,9 @@ const STATUS_STEP = { pending: 0, paid: 1, shipped: 2, completed: 3 }
 export default function OrderCard({ order }) {
   const navigate = useNavigate()
   const [panel, setPanel] = useState(null) // null | 'details' | 'timeline'
+  const [reviewItem, setReviewItem] = useState(null) // order item being reviewed
+  const [reviewedIds, setReviewedIds] = useState(() => new Set())
+  const isDelivered = order.status === 'completed'
 
   const itemCount = order.items.reduce((n, it) => n + it.quantity, 0)
   const badge = STATUS_STYLES[order.status] ?? 'bg-gray-100 text-gray-700 dark:bg-slate-700 dark:text-slate-300'
@@ -89,9 +93,23 @@ export default function OrderCard({ order }) {
                 Qty {item.quantity}{item.sku ? ` · ${item.sku}` : ''}
               </p>
             </div>
-            <span className="whitespace-nowrap text-sm font-medium text-slate-700 dark:text-slate-300">
-              ${item.lineTotal.toFixed(2)}
-            </span>
+            <div className="flex shrink-0 flex-col items-end gap-1.5">
+              <span className="whitespace-nowrap text-sm font-medium text-slate-700 dark:text-slate-300">
+                ${item.lineTotal.toFixed(2)}
+              </span>
+              {isDelivered && (
+                reviewedIds.has(item.id) ? (
+                  <span className="text-xs font-medium text-green-600 dark:text-green-400">Reviewed ✓</span>
+                ) : (
+                  <button
+                    onClick={() => setReviewItem(item)}
+                    className="rounded-lg border border-orange-500 px-3 py-1 text-xs font-semibold text-orange-600 transition-colors hover:bg-orange-50 dark:text-orange-400 dark:hover:bg-orange-500/10"
+                  >
+                    Rate
+                  </button>
+                )
+              )}
+            </div>
           </li>
         ))}
       </ul>
@@ -174,6 +192,15 @@ export default function OrderCard({ order }) {
             </ol>
           )}
         </div>
+      )}
+
+      {reviewItem && (
+        <ReviewFormModal
+          key={reviewItem.id}
+          item={reviewItem}
+          onClose={() => setReviewItem(null)}
+          onSubmitted={(id) => setReviewedIds((prev) => new Set(prev).add(id))}
+        />
       )}
     </div>
   )

@@ -7,6 +7,9 @@ import { useAuth } from '../context/AuthContext'
 import { useWishlist } from '../context/WishlistContext'
 import { useFly } from '../context/FlyContext'
 import { getPrimaryImage, getActiveVariants, formatPrice } from '../utils/productHelpers'
+import { getRating } from '../utils/rating'
+import StarRating from '../components/StarRating'
+import ProductReviews from '../components/ProductReviews'
 import useDocumentTitle from '../hooks/useDocumentTitle'
 
 export default function ProductDetail() {
@@ -114,6 +117,14 @@ export default function ProductDetail() {
   const mainImage = galleryImages[activeImageIdx] ?? galleryImages[0]
 
   const maxQuantity = selectedVariant?.stock ?? 1
+
+  // Price range across variants (shown before a variant is picked), rating, and
+  // stock — for the upgraded product header.
+  const variantPrices = activeVariants.map((v) => Number(v.price)).filter((n) => Number.isFinite(n))
+  const minPrice = variantPrices.length ? Math.min(...variantPrices) : null
+  const maxPrice = variantPrices.length ? Math.max(...variantPrices) : null
+  const rating = getRating(product)
+  const inStock = activeVariants.some((v) => Number(v.stock) > 0)
 
   // Confirmation toast with quick actions — the user stays on the page, but can
   // jump to the cart or check out this item without hunting for the nav icon.
@@ -267,13 +278,42 @@ export default function ProductDetail() {
             </svg>
           </button>
         </div>
-        <p className="text-lg font-semibold text-gray-900 sm:text-xl dark:text-slate-100">
-          {selectedVariant ? formatPrice(selectedVariant.price) : 'Select options'}
-        </p>
+        {/* Rating / stock meta */}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+          {rating.count > 0 ? (
+            <button
+              onClick={() => document.getElementById('reviews')?.scrollIntoView({ behavior: 'smooth' })}
+              className="flex items-center gap-1.5 transition-opacity hover:opacity-80"
+            >
+              <StarRating value={rating.value} count={rating.count} size="sm" />
+              <span className="text-gray-500 underline-offset-2 hover:underline dark:text-slate-400">
+                {rating.count} {rating.count === 1 ? 'review' : 'reviews'}
+              </span>
+            </button>
+          ) : (
+            <span className="text-gray-500 dark:text-slate-400">No ratings yet</span>
+          )}
+          <span className="text-gray-300 dark:text-slate-600">|</span>
+          <span className={inStock ? 'font-medium text-green-600 dark:text-green-400' : 'font-medium text-red-500'}>
+            {inStock ? 'In stock' : 'Out of stock'}
+          </span>
+        </div>
 
-        {product.description && (
-          <p className="text-sm leading-relaxed text-gray-600 dark:text-slate-400">{product.description}</p>
-        )}
+        {/* Price */}
+        <div className="rounded-lg bg-orange-50 px-4 py-3 dark:bg-orange-500/10">
+          <p className="text-2xl font-bold text-orange-600 sm:text-3xl dark:text-orange-400">
+            {selectedVariant
+              ? formatPrice(selectedVariant.price)
+              : minPrice == null
+                ? 'Unavailable'
+                : minPrice === maxPrice
+                  ? formatPrice(minPrice)
+                  : `${formatPrice(minPrice)} – ${formatPrice(maxPrice)}`}
+          </p>
+          {!selectedVariant && minPrice != null && minPrice !== maxPrice && (
+            <p className="mt-0.5 text-xs text-gray-500 dark:text-slate-400">Select options to see the exact price</p>
+          )}
+        </div>
 
         {activeVariants.length === 0 ? (
           <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
@@ -368,7 +408,60 @@ export default function ProductDetail() {
         </div>
           </>
         )}
+
+        {/* Shipping & shopping guarantee */}
+        <ul className="mt-4 flex flex-col gap-2.5 rounded-lg border border-gray-200 p-4 text-sm text-gray-600 dark:border-slate-800 dark:text-slate-300">
+          <li className="flex items-center gap-2.5">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.6} stroke="currentColor" className="h-5 w-5 text-orange-500">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-5.25m0-11.25h1.5m-1.5 0H8.25m0 0V5.625A1.125 1.125 0 019.375 4.5h9.75c.621 0 1.125.504 1.125 1.125v.375m0 0V9m0 0h-3.375" />
+            </svg>
+            Free shipping · Estimated delivery 3–7 business days
+          </li>
+          <li className="flex items-center gap-2.5">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.6} stroke="currentColor" className="h-5 w-5 text-orange-500">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+            </svg>
+            7-day easy returns
+          </li>
+          <li className="flex items-center gap-2.5">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.6} stroke="currentColor" className="h-5 w-5 text-orange-500">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+            </svg>
+            Secure checkout · Protected payment
+          </li>
+        </ul>
       </div>
+      </div>
+
+      {/* Product specifications */}
+      <section className="mt-10 border-t border-gray-200 pt-8 dark:border-slate-800">
+        <h2 className="mb-4 text-xl font-bold text-slate-900 sm:text-2xl dark:text-slate-100">Product Specifications</h2>
+        <dl className="grid grid-cols-1 gap-x-10 gap-y-3 text-sm sm:grid-cols-2">
+          {[
+            ['Category', product.category?.name ?? '—'],
+            ['Availability', inStock ? 'In stock' : 'Out of stock'],
+            ['SKU', selectedVariant?.sku ?? '—'],
+            ['Options', `${activeVariants.length} variant${activeVariants.length === 1 ? '' : 's'}`],
+          ].map(([label, value]) => (
+            <div key={label} className="flex justify-between gap-3 border-b border-gray-100 pb-2 dark:border-slate-800">
+              <dt className="text-gray-500 dark:text-slate-400">{label}</dt>
+              <dd className="text-right font-medium text-slate-800 dark:text-slate-200">{value}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+
+      {/* Product description */}
+      {product.description && (
+        <section className="mt-10 border-t border-gray-200 pt-8 dark:border-slate-800">
+          <h2 className="mb-4 text-xl font-bold text-slate-900 sm:text-2xl dark:text-slate-100">Product Description</h2>
+          <p className="whitespace-pre-line text-sm leading-relaxed text-gray-600 dark:text-slate-300">{product.description}</p>
+        </section>
+      )}
+
+      {/* Customer reviews (ratings summary + star filters) */}
+      <div id="reviews" className="scroll-mt-24">
+        <ProductReviews key={slug} slug={slug} product={product} />
       </div>
     </div>
   )

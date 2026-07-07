@@ -17,16 +17,16 @@ function hashString(str) {
 
 export function getRating(product) {
   const real = product?.rating ?? product?.average_rating
-  if (real != null && !Number.isNaN(Number(real))) {
-    return {
-      value: Number(real),
-      count: Number(product?.review_count ?? product?.reviews_count ?? 0),
-      placeholder: false,
-    }
+  const count = Number(product?.review_count ?? product?.reviews_count ?? 0)
+  // Use REAL ratings only once there's at least one review. Until a product has
+  // been reviewed the backend returns 0.0 / 0, which would make the whole
+  // catalog look unrated — so fall back to the stable placeholder in that case.
+  if (real != null && !Number.isNaN(Number(real)) && count > 0) {
+    return { value: Number(real), count, placeholder: false }
   }
   const seed =
     Number(product?.id) || hashString(String(product?.slug || product?.name || 'product'))
   const value = 3.8 + ((seed * 7) % 12) / 10 // 3.8 – 4.9
-  const count = 12 + ((seed * 13) % 240) // 12 – 251
-  return { value: Math.round(value * 10) / 10, count, placeholder: true }
+  const pseudoCount = 12 + ((seed * 13) % 240) // 12 – 251
+  return { value: Math.round(value * 10) / 10, count: pseudoCount, placeholder: true }
 }
