@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { getProduct } from '../api/products'
 import { useCart } from '../context/CartContext'
+import { useAuth } from '../context/AuthContext'
 import { useWishlist } from '../context/WishlistContext'
 import { useFly } from '../context/FlyContext'
 import { getPrimaryImage, getActiveVariants } from '../utils/productHelpers'
@@ -13,7 +14,15 @@ export default function ProductDetail() {
   const navigate = useNavigate()
   const location = useLocation()
   const { addToCart } = useCart()
+  const { user } = useAuth()
   const { flyToNavIcon } = useFly()
+
+  // Cart actions require an account. Send guests to login and bring them back
+  // to this product page afterwards (matches the app's `from`-redirect pattern).
+  function requireLogin() {
+    toast('Please log in to continue.', { icon: '🔒', id: 'auth' })
+    navigate('/login', { state: { from: location } })
+  }
   const productImageRef = useRef(null)
   // Locks out extra clicks while an add-fly is in the air, so a rapid burst
   // adds the item once instead of stacking quantity.
@@ -140,6 +149,7 @@ export default function ProductDetail() {
 
   function handleAddToCart(e) {
     if (!selectedVariant) return
+    if (!user) return requireLogin()
     // Ignore repeat clicks until the current add-fly lands.
     if (addingRef.current) return
     addingRef.current = true
@@ -165,6 +175,7 @@ export default function ProductDetail() {
   // item before the cart page loads.
   async function handleBuyNow() {
     if (!selectedVariant || buying) return
+    if (!user) return requireLogin()
     setBuying(true)
     try {
       await addToCart(product, selectedVariant, quantity)

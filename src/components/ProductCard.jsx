@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
 import { getPrimaryImage, getStartingPrice, getActiveVariants } from '../utils/productHelpers'
@@ -18,6 +18,8 @@ export default function ProductCard({ product, index = 0 }) {
   const { addToCart } = useCart()
   const { user } = useAuth()
   const { flyToNavIcon } = useFly()
+  const navigate = useNavigate()
+  const location = useLocation()
   const imageRef = useRef(null)
   // Locks out extra clicks while an add-fly is in the air, so a rapid burst
   // launches ONE flight / ONE add instead of many.
@@ -58,6 +60,12 @@ export default function ProductCard({ product, index = 0 }) {
   function handleAddToCart(e) {
     e.preventDefault()
     e.stopPropagation()
+    // Cart actions require an account — send guests to login and back.
+    if (!user) {
+      toast('Please log in to continue.', { icon: '🔒', id: 'auth' })
+      navigate('/login', { state: { from: location } })
+      return
+    }
     const variants = getActiveVariants(product)
     if (variants.length !== 1) {
       setQuickOpen(true)

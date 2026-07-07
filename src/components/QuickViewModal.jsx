@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import toast from 'react-hot-toast'
 import { getProduct } from '../api/products'
 import { useCart } from '../context/CartContext'
+import { useAuth } from '../context/AuthContext'
 import { useWishlist } from '../context/WishlistContext'
 import { getPrimaryImage, getActiveVariants } from '../utils/productHelpers'
 import { getRating } from '../utils/rating'
@@ -18,7 +19,9 @@ import StarRating from './StarRating'
  */
 export default function QuickViewModal({ open, product, onClose }) {
   const navigate = useNavigate()
+  const location = useLocation()
   const { addToCart } = useCart()
+  const { user } = useAuth()
   const { isWished, toggleWishlist } = useWishlist()
 
   // Start from the passed product; enrich with full detail once fetched.
@@ -114,8 +117,17 @@ export default function QuickViewModal({ open, product, onClose }) {
     )
   }
 
+  // Cart actions require an account. Send guests to login and return them to
+  // the page they were on (matches the app's `from`-redirect pattern).
+  function requireLogin() {
+    onClose()
+    toast('Please log in to continue.', { icon: '🔒', id: 'auth' })
+    navigate('/login', { state: { from: location } })
+  }
+
   function handleAddToCart() {
     if (!selectedVariant) return
+    if (!user) return requireLogin()
     addToCart(detail, selectedVariant, 1)
     setAdded(true)
     setTimeout(() => setAdded(false), 1500)
@@ -124,6 +136,7 @@ export default function QuickViewModal({ open, product, onClose }) {
 
   async function handleBuyNow() {
     if (!selectedVariant || buying) return
+    if (!user) return requireLogin()
     setBuying(true)
     try {
       await addToCart(detail, selectedVariant, 1)
