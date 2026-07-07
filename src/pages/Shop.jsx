@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import toast from 'react-hot-toast'
 import { getProducts } from '../api/products'
 import { getCategories } from '../api/categories'
-import { getStartingPrice } from '../utils/productHelpers'
+import { getStartingPrice, getActiveVariants } from '../utils/productHelpers'
 import { getRating } from '../utils/rating'
 import ProductCard from '../components/ProductCard'
 import ProductCardSkeleton from '../components/ProductCardSkeleton'
@@ -30,6 +29,37 @@ export default function Shop() {
   const query = searchParams.get('q') ?? ''
   const [sort, setSort] = useState('default')
 
+  // Filter drawer state.
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const [priceMin, setPriceMin] = useState('')
+  const [priceMax, setPriceMax] = useState('')
+  const [minRating, setMinRating] = useState(0)
+  const [inStockOnly, setInStockOnly] = useState(false)
+
+  const activeFilterCount =
+    (activeCategory !== 'all' ? 1 : 0) +
+    (priceMin !== '' || priceMax !== '' ? 1 : 0) +
+    (minRating > 0 ? 1 : 0) +
+    (inStockOnly ? 1 : 0)
+
+  function resetFilters() {
+    setActiveCategory('all')
+    setPriceMin('')
+    setPriceMax('')
+    setMinRating(0)
+    setInStockOnly(false)
+  }
+
+  // Close the filter drawer on Escape.
+  useEffect(() => {
+    if (!filtersOpen) return
+    function onKey(e) {
+      if (e.key === 'Escape') setFiltersOpen(false)
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [filtersOpen])
+
   // Clear the active navbar search (removes ?q=).
   function clearSearch() {
     const next = new URLSearchParams(searchParams)
@@ -50,6 +80,8 @@ export default function Shop() {
 
   const visibleProducts = useMemo(() => {
     const search = query.trim().toLowerCase()
+    const min = priceMin === '' ? null : Number(priceMin)
+    const max = priceMax === '' ? null : Number(priceMax)
 
     let result = products
 
@@ -60,6 +92,11 @@ export default function Shop() {
     if (search) {
       result = result.filter((p) => p.name.toLowerCase().includes(search))
     }
+
+    if (min != null) result = result.filter((p) => (getStartingPrice(p) ?? 0) >= min)
+    if (max != null) result = result.filter((p) => (getStartingPrice(p) ?? Infinity) <= max)
+    if (minRating > 0) result = result.filter((p) => getRating(p).value >= minRating)
+    if (inStockOnly) result = result.filter((p) => getActiveVariants(p).some((v) => Number(v.stock) > 0))
 
     if (sort === 'default') return result
 
@@ -75,7 +112,7 @@ export default function Shop() {
       if (sort === 'newest') return newness(b) - newness(a)
       return 0
     })
-  }, [products, activeCategory, query, sort])
+  }, [products, activeCategory, query, sort, priceMin, priceMax, minRating, inStockOnly])
 
   const chipClass = (isActive) =>
     `shrink-0 whitespace-nowrap rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
@@ -174,13 +211,16 @@ export default function Shop() {
 
             <button
               type="button"
-              onClick={() => toast('Filters coming soon — category, price, rating & availability.', { icon: '🔧', id: 'filters' })}
+              onClick={() => setFiltersOpen(true)}
               className="flex items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:border-orange-400 hover:text-orange-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-orange-400 dark:hover:text-orange-400"
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.7} stroke="currentColor" className="h-4 w-4">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
               </svg>
               Filters
+              {activeFilterCount > 0 && (
+                <span className="rounded-full bg-orange-500 px-1.5 text-[10px] font-bold text-white">{activeFilterCount}</span>
+              )}
             </button>
           </div>
         </div>
@@ -210,6 +250,107 @@ export default function Shop() {
           {visibleProducts.map((p, i) => (
             <ProductCard key={p.id} product={p} index={i} />
           ))}
+        </div>
+      )}
+
+      {/* Filter drawer */}
+      {filtersOpen && (
+        <div className="fixed inset-0 z-40" role="dialog" aria-modal="true" aria-label="Filters">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setFiltersOpen(false)} />
+          <div className="absolute right-0 top-0 flex h-full w-80 max-w-[85vw] flex-col bg-white shadow-2xl dark:bg-slate-900">
+            <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-slate-800">
+              <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">Filters</h2>
+              <button
+                onClick={() => setFiltersOpen(false)}
+                aria-label="Close filters"
+                className="rounded-md p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="h-5 w-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-5 py-4">
+              {/* Category */}
+              <div className="mb-6">
+                <h3 className="mb-2 text-sm font-semibold text-slate-900 dark:text-slate-100">Category</h3>
+                <select
+                  value={activeCategory}
+                  onChange={(e) => setActiveCategory(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                >
+                  <option value="all">All categories</option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Price range */}
+              <div className="mb-6">
+                <h3 className="mb-2 text-sm font-semibold text-slate-900 dark:text-slate-100">Price range</h3>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number" min="0" placeholder="Min" value={priceMin}
+                    onChange={(e) => setPriceMin(e.target.value)}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                  />
+                  <span className="text-gray-400">–</span>
+                  <input
+                    type="number" min="0" placeholder="Max" value={priceMax}
+                    onChange={(e) => setPriceMax(e.target.value)}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                  />
+                </div>
+              </div>
+
+              {/* Rating */}
+              <div className="mb-6">
+                <h3 className="mb-2 text-sm font-semibold text-slate-900 dark:text-slate-100">Rating</h3>
+                <div className="flex flex-col gap-1.5">
+                  {[0, 4, 3, 2].map((r) => (
+                    <label key={r} className="flex cursor-pointer items-center gap-2 text-sm text-gray-700 dark:text-slate-300">
+                      <input
+                        type="radio" name="minRating" checked={minRating === r}
+                        onChange={() => setMinRating(r)}
+                        className="accent-orange-500"
+                      />
+                      {r === 0 ? 'Any rating' : `${r}★ & up`}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Availability */}
+              <div>
+                <h3 className="mb-2 text-sm font-semibold text-slate-900 dark:text-slate-100">Availability</h3>
+                <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-700 dark:text-slate-300">
+                  <input
+                    type="checkbox" checked={inStockOnly}
+                    onChange={(e) => setInStockOnly(e.target.checked)}
+                    className="h-4 w-4 accent-orange-500"
+                  />
+                  In stock only
+                </label>
+              </div>
+            </div>
+
+            <div className="flex gap-2 border-t border-gray-200 px-5 py-4 dark:border-slate-800">
+              <button
+                onClick={resetFilters}
+                className="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:border-orange-400 hover:text-orange-500 dark:border-slate-700 dark:text-slate-200"
+              >
+                Reset
+              </button>
+              <button
+                onClick={() => setFiltersOpen(false)}
+                className="flex-1 rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-orange-600"
+              >
+                Show {visibleProducts.length} results
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -13,6 +13,13 @@ export function getStartingPrice(product) {
   return Math.min(...variants.map((v) => Number(v.price)))
 }
 
+// Single source of truth for price formatting so a product shows the SAME price
+// on the card, detail, cart, wishlist, and checkout (always 2 decimals).
+export function formatPrice(value) {
+  const n = Number(value)
+  return Number.isFinite(n) ? `$${n.toFixed(2)}` : ''
+}
+
 /**
  * One small marketing badge for a product card. Prefers real backend fields
  * (discount / compare-at price / is_new / is_bestseller). When those are absent

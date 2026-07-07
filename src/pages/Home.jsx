@@ -76,16 +76,16 @@ export default function Home() {
         )}
       </section>
 
-      {/* Closing CTA */}
-      <section className="bg-slate-900 dark:bg-slate-950/60">
-        <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 px-4 py-14 text-center sm:px-8">
-          <h2 className="text-2xl font-bold text-white sm:text-3xl">Ready to find your next favourite?</h2>
-          <p className="max-w-md text-sm text-slate-300">
-            Browse the full catalogue and enjoy free shipping on everything.
-          </p>
+      {/* Closing CTA — compact banner inside the page grid */}
+      <section className="mx-auto max-w-6xl px-4 pb-14 sm:px-8">
+        <div className="flex flex-col items-center gap-4 rounded-2xl bg-linear-to-r from-slate-900 to-slate-800 px-6 py-8 text-center shadow-sm sm:flex-row sm:justify-between sm:gap-6 sm:px-10 sm:text-left dark:from-slate-950 dark:to-slate-900">
+          <div>
+            <h2 className="text-xl font-bold text-white sm:text-2xl">Ready to find your next favourite?</h2>
+            <p className="mt-1 text-sm text-slate-300">Browse the full catalogue and enjoy free shipping on everything.</p>
+          </div>
           <Link
             to="/shop"
-            className="mt-2 rounded-lg bg-orange-500 px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-orange-600"
+            className="shrink-0 rounded-lg bg-orange-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-orange-500/20 transition-colors hover:bg-orange-600"
           >
             Explore all products
           </Link>

@@ -118,7 +118,7 @@ export default function Navbar() {
     'rounded-lg border border-orange-500 px-4 py-1.5 font-medium text-orange-400 transition-all duration-200 hover:-translate-y-0.5 hover:bg-orange-500 hover:text-white hover:shadow-lg hover:shadow-orange-500/30 active:translate-y-0'
 
   return (
-    <nav className="sticky top-0 z-20 border-b border-slate-800 bg-slate-900/90 text-white shadow-md backdrop-blur supports-backdrop-filter:bg-slate-900/75">
+    <nav className="sticky top-0 z-30 border-b border-slate-800 bg-slate-900/95 text-white shadow-lg backdrop-blur-md">
       <div className="flex w-full items-center justify-between gap-4 px-4 py-2 sm:px-8 lg:px-12">
         <NavLink to="/" className="flex shrink-0 items-center gap-2">
           <img src={logoIcon} alt="" className="h-10 w-auto sm:h-12" />

@@ -6,7 +6,7 @@ import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { useWishlist } from '../context/WishlistContext'
 import { useFly } from '../context/FlyContext'
-import { getPrimaryImage, getActiveVariants } from '../utils/productHelpers'
+import { getPrimaryImage, getActiveVariants, formatPrice } from '../utils/productHelpers'
 import useDocumentTitle from '../hooks/useDocumentTitle'
 
 export default function ProductDetail() {
@@ -268,7 +268,7 @@ export default function ProductDetail() {
           </button>
         </div>
         <p className="text-lg font-semibold text-gray-900 sm:text-xl dark:text-slate-100">
-          {selectedVariant ? `$${selectedVariant.price}` : 'Select options'}
+          {selectedVariant ? formatPrice(selectedVariant.price) : 'Select options'}
         </p>
 
         {product.description && (
