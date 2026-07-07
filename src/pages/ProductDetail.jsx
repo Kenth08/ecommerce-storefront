@@ -440,9 +440,10 @@ export default function ProductDetail() {
           {[
             ['Category', product.category?.name ?? '—'],
             ['Availability', inStock ? 'In stock' : 'Out of stock'],
-            ['SKU', selectedVariant?.sku ?? '—'],
+            // SKU is variant-specific — only show it once a variant is picked.
+            selectedVariant?.sku ? ['SKU', selectedVariant.sku] : null,
             ['Options', `${activeVariants.length} variant${activeVariants.length === 1 ? '' : 's'}`],
-          ].map(([label, value]) => (
+          ].filter(Boolean).map(([label, value]) => (
             <div key={label} className="flex justify-between gap-3 border-b border-gray-100 pb-2 dark:border-slate-800">
               <dt className="text-gray-500 dark:text-slate-400">{label}</dt>
               <dd className="text-right font-medium text-slate-800 dark:text-slate-200">{value}</dd>

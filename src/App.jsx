@@ -5,6 +5,7 @@ import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import ErrorBoundary from './components/ErrorBoundary'
 import ScrollToTop from './components/ScrollToTop'
+import PromoPopup from './components/PromoPopup'
 
 // Route pages are code-split (lazy) so visitors only download the page they
 // open, instead of one large bundle up front.
@@ -78,6 +79,7 @@ function App() {
         </main>
       </ErrorBoundary>
       {!hideChrome && <Footer />}
+      {!hideChrome && <PromoPopup />}
     </>
   )
 }
