@@ -1,24 +1,20 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getOrders } from '../api/orders'
 import { useAuth } from '../context/AuthContext'
+import OrderCard from '../components/OrderCard'
 import useDocumentTitle from '../hooks/useDocumentTitle'
 
-// Short, readable date; falls back to nothing if the backend omits it.
-function formatDate(iso) {
-  if (!iso) return ''
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return ''
-  return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
-}
-
-const STATUS_STYLES = {
-  pending: 'bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300',
-  paid: 'bg-green-100 text-green-800 dark:bg-green-500/15 dark:text-green-300',
-  shipped: 'bg-blue-100 text-blue-800 dark:bg-blue-500/15 dark:text-blue-300',
-  delivered: 'bg-green-100 text-green-800 dark:bg-green-500/15 dark:text-green-300',
-  cancelled: 'bg-red-100 text-red-800 dark:bg-red-500/15 dark:text-red-300',
-}
+// Filter tab -> which backend statuses it includes. Labels are customer-facing;
+// the backend enum (pending/paid/shipped/completed/failed/cancelled) is mapped.
+const FILTERS = [
+  { label: 'All', statuses: null },
+  { label: 'Pending', statuses: ['pending'] },
+  { label: 'Processing', statuses: ['paid'] },
+  { label: 'Shipped', statuses: ['shipped'] },
+  { label: 'Delivered', statuses: ['completed'] },
+  { label: 'Cancelled', statuses: ['cancelled', 'failed'] },
+]
 
 export default function Orders() {
   useDocumentTitle('My Orders')
@@ -30,6 +26,12 @@ export default function Orders() {
   // Separate "backend hasn't shipped this endpoint yet" from a real failure,
   // so a missing feature reads as a calm notice, not an alarming error.
   const [unavailable, setUnavailable] = useState(false)
+  const [activeFilter, setActiveFilter] = useState('All')
+
+  const visibleOrders = useMemo(() => {
+    const statuses = FILTERS.find((f) => f.label === activeFilter)?.statuses
+    return statuses ? orders.filter((o) => statuses.includes(o.status)) : orders
+  }, [orders, activeFilter])
 
   // Orders live on the server and require auth — bounce guests to login.
   useEffect(() => {
@@ -51,11 +53,12 @@ export default function Orders() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-2xl p-4 sm:p-8">
-        <h1 className="mb-6 text-2xl font-bold">My Orders</h1>
-        <div className="flex flex-col gap-4">
+      <div className="mx-auto max-w-3xl p-4 sm:p-8">
+        <h1 className="text-2xl font-bold">My Orders</h1>
+        <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">Track and manage your recent purchases.</p>
+        <div className="mt-6 flex flex-col gap-4">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-28 animate-pulse rounded-xl bg-gray-200 dark:bg-slate-800" />
+            <div key={i} className="h-44 animate-pulse rounded-xl bg-gray-200 dark:bg-slate-800" />
           ))}
         </div>
       </div>
@@ -131,51 +134,47 @@ export default function Orders() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl p-4 sm:p-8">
-      <h1 className="mb-6 text-2xl font-bold">My Orders</h1>
-      <div className="flex flex-col gap-4">
-        {orders.map((order) => {
-          const badge = STATUS_STYLES[order.status] ?? 'bg-gray-100 text-gray-700 dark:bg-slate-700 dark:text-slate-300'
+    <div className="mx-auto max-w-3xl p-4 sm:p-8">
+      {/* Header */}
+      <header className="mb-6">
+        <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl dark:text-slate-100">
+          My Orders <span className="text-base font-normal text-gray-500 dark:text-slate-400">({orders.length})</span>
+        </h1>
+        <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">Track and manage your recent purchases.</p>
+      </header>
+
+      {/* Filter tabs */}
+      <div className="mb-6 flex gap-2 overflow-x-auto pb-1">
+        {FILTERS.map((f) => {
+          const active = activeFilter === f.label
           return (
-            <div key={order.id} className="rounded-xl border border-gray-200 p-5 dark:border-slate-800">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div>
-                  <p className="font-semibold">Order #{order.id}</p>
-                  {formatDate(order.createdAt) && (
-                    <p className="text-xs text-gray-500 dark:text-slate-400">{formatDate(order.createdAt)}</p>
-                  )}
-                </div>
-                <span className={`rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${badge}`}>
-                  {order.status}
-                </span>
-              </div>
-
-              {order.items.length > 0 && (
-                <ul className="mt-3 flex flex-col gap-1.5 border-t border-gray-100 pt-3 text-sm dark:border-slate-800">
-                  {order.items.map((item) => (
-                    <li key={item.id} className="flex justify-between gap-3 text-gray-600 dark:text-slate-300">
-                      <span>
-                        {item.quantity} × {item.name}
-                        {item.size || item.color ? (
-                          <span className="text-gray-400 dark:text-slate-500">
-                            {' '}({[item.size, item.color].filter(Boolean).join(' / ')})
-                          </span>
-                        ) : null}
-                      </span>
-                      <span className="whitespace-nowrap font-medium">${item.lineTotal.toFixed(2)}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-
-              <div className="mt-3 flex justify-between border-t border-gray-200 pt-3 text-base font-semibold dark:border-slate-800">
-                <span>Total</span>
-                <span>${order.total.toFixed(2)}</span>
-              </div>
-            </div>
+            <button
+              key={f.label}
+              onClick={() => setActiveFilter(f.label)}
+              className={`shrink-0 rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
+                active
+                  ? 'border-orange-500 bg-orange-500 text-white'
+                  : 'border-gray-300 bg-white text-gray-700 hover:border-orange-400 hover:text-orange-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-orange-400 dark:hover:text-orange-400'
+              }`}
+            >
+              {f.label}
+            </button>
           )
         })}
       </div>
+
+      {/* Orders */}
+      {visibleOrders.length === 0 ? (
+        <p className="rounded-xl border border-dashed border-gray-300 py-12 text-center text-sm text-gray-500 dark:border-slate-700 dark:text-slate-400">
+          No {activeFilter.toLowerCase()} orders.
+        </p>
+      ) : (
+        <div className="flex flex-col gap-4">
+          {visibleOrders.map((order) => (
+            <OrderCard key={order.id} order={order} />
+          ))}
+        </div>
+      )}
     </div>
   )
 }

@@ -8,6 +8,15 @@ import { useFly } from '../context/FlyContext'
 import toast from 'react-hot-toast'
 import logoIcon from '../assets/logo-icon.png'
 import ThemeToggle from './ThemeToggle'
+import AccountMenu from './AccountMenu'
+
+// Account links shared by the desktop dropdown and the mobile menu.
+const ACCOUNT_LINKS = [
+  { to: '/profile', label: 'Profile' },
+  { to: '/orders', label: 'My Orders' },
+  { to: '/addresses', label: 'Addresses' },
+  { to: '/settings', label: 'Settings' },
+]
 
 export default function Navbar() {
   const { user, logout } = useAuth()
@@ -16,6 +25,16 @@ export default function Navbar() {
   const { bump, registerTarget } = useFly()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
+  const [search, setSearch] = useState('')
+
+  // Frontend search: route to the Shop page with ?q=, which filters the
+  // existing products array. Later this can call GET /api/products?search=.
+  function handleSearch(e) {
+    e.preventDefault()
+    const q = search.trim()
+    setOpen(false)
+    navigate(q ? `/shop?q=${encodeURIComponent(q)}` : '/shop')
+  }
 
   // The nav heart/cart icons are the fly-animation targets.
   const heartRef = useRef(null)
@@ -99,14 +118,36 @@ export default function Navbar() {
     'rounded-lg border border-orange-500 px-4 py-1.5 font-medium text-orange-400 transition-all duration-200 hover:-translate-y-0.5 hover:bg-orange-500 hover:text-white hover:shadow-lg hover:shadow-orange-500/30 active:translate-y-0'
 
   return (
-    <nav className="sticky top-0 z-20 bg-slate-900 text-white shadow-md">
+    <nav className="sticky top-0 z-20 border-b border-slate-800 bg-slate-900/90 text-white shadow-md backdrop-blur supports-backdrop-filter:bg-slate-900/75">
       <div className="flex w-full items-center justify-between gap-4 px-4 py-2 sm:px-8 lg:px-12">
-        <NavLink to="/" className="flex items-center gap-2">
+        <NavLink to="/" className="flex shrink-0 items-center gap-2">
           <img src={logoIcon} alt="" className="h-10 w-auto sm:h-12" />
           <span className="text-xl font-bold tracking-tight sm:text-2xl">
             Ecom<span className="text-orange-400">ify</span>
           </span>
         </NavLink>
+
+        {/* Product search — desktop only (mobile lives in the menu below) */}
+        <form onSubmit={handleSearch} className="relative hidden flex-1 items-center md:flex md:max-w-xs lg:max-w-sm">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.8}
+            stroke="currentColor"
+            className="pointer-events-none absolute left-3 h-4 w-4 text-slate-400"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+          </svg>
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search products..."
+            aria-label="Search products"
+            className="w-full rounded-lg border border-slate-700 bg-slate-800/70 py-1.5 pl-9 pr-3 text-sm text-white placeholder:text-slate-400 outline-none transition-colors focus:border-orange-500"
+          />
+        </form>
 
         <button
           onClick={() => setOpen(!open)}
@@ -139,7 +180,7 @@ export default function Navbar() {
               </svg>
             </motion.span>
             {wishlistCount > 0 && (
-              <span className="absolute -right-2 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-orange-500 px-1 text-xs font-semibold text-white">
+              <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-orange-500 px-1 text-[10px] font-semibold leading-none text-white ring-2 ring-slate-900">
                 {wishlistCount > 99 ? '99+' : wishlistCount}
               </span>
             )}
@@ -165,7 +206,7 @@ export default function Navbar() {
               </svg>
             </motion.span>
             {cartCount > 0 && (
-              <span className="absolute -right-2 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-orange-500 px-1 text-xs font-semibold text-white">
+              <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-orange-500 px-1 text-[10px] font-semibold leading-none text-white ring-2 ring-slate-900">
                 {cartCount > 99 ? '99+' : cartCount}
               </span>
             )}
@@ -174,17 +215,37 @@ export default function Navbar() {
           <span className="h-6 w-px bg-slate-700" aria-hidden="true" />
 
           {user ? (
-            <button onClick={handleLogout} className={authButtonClass}>Logout</button>
+            <AccountMenu user={user} onLogout={handleLogout} />
           ) : (
             <NavLink to="/login" className={authButtonClass}>Login</NavLink>
           )}
-
-          <ThemeToggle />
         </div>
       </div>
 
       {open && (
         <div className="flex flex-col gap-3 border-t border-slate-800 px-4 py-4 text-sm sm:hidden">
+          {/* Product search — mobile */}
+          <form onSubmit={handleSearch} className="relative flex items-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.8}
+              stroke="currentColor"
+              className="pointer-events-none absolute left-3 h-4 w-4 text-slate-400"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+            </svg>
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search products..."
+              aria-label="Search products"
+              className="w-full rounded-lg border border-slate-700 bg-slate-800/70 py-2 pl-9 pr-3 text-sm text-white placeholder:text-slate-400 outline-none transition-colors focus:border-orange-500"
+            />
+          </form>
+
           <NavLink to="/" className={linkClass} onClick={() => setOpen(false)}>Home</NavLink>
           <NavLink to="/shop" className={linkClass} onClick={() => setOpen(false)}>Shop</NavLink>
           <NavLink
@@ -227,26 +288,50 @@ export default function Navbar() {
             Cart
           </NavLink>
 
-          <div className="flex items-center justify-between border-t border-slate-800 pt-3 text-gray-300">
-            <span>Theme</span>
-            <ThemeToggle />
-          </div>
+          {/* Account section — mirrors the desktop dropdown. */}
+          {user ? (
+            <div className="border-t border-slate-800 pt-3">
+              <p className="mb-1 px-0.5 text-xs font-semibold uppercase tracking-wide text-slate-500">Account</p>
+              {ACCOUNT_LINKS.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  className={linkClass}
+                  onClick={() => setOpen(false)}
+                >
+                  <span className="block py-1.5">{item.label}</span>
+                </NavLink>
+              ))}
 
-          <div className="mt-1 border-t border-slate-800 pt-3">
-            {user ? (
-              <button onClick={handleLogout} className={`${authButtonClass} block w-full text-center`}>
+              {/* Appearance */}
+              <div className="flex items-center justify-between py-1.5 text-gray-300">
+                <span>Appearance</span>
+                <ThemeToggle />
+              </div>
+
+              {/* Logout — red, separated at the bottom */}
+              <button
+                onClick={handleLogout}
+                className="mt-2 block w-full rounded-lg border border-red-500/40 px-4 py-2 text-center font-medium text-red-400 transition-colors hover:bg-red-500/10"
+              >
                 Logout
               </button>
-            ) : (
+            </div>
+          ) : (
+            <div className="border-t border-slate-800 pt-3">
+              <div className="flex items-center justify-between py-1.5 text-gray-300">
+                <span>Appearance</span>
+                <ThemeToggle />
+              </div>
               <NavLink
                 to="/login"
                 onClick={() => setOpen(false)}
-                className={`${authButtonClass} block w-full text-center`}
+                className={`${authButtonClass} mt-2 block w-full text-center`}
               >
                 Login
               </NavLink>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       )}
     </nav>

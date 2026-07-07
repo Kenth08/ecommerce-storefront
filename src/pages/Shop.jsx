@@ -21,7 +21,8 @@ export default function Shop() {
   const [activeCategory, setActiveCategory] = useState(
     categoryParam ? Number(categoryParam) : 'all'
   ) // 'all' or a category id
-  const [query, setQuery] = useState('')
+  // Prefill search from ?q= (used by "Buy Again" on the Orders page).
+  const [query, setQuery] = useState(searchParams.get('q') ?? '')
   const [sort, setSort] = useState('default')
 
   useEffect(() => {

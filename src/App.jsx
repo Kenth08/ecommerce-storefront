@@ -14,6 +14,9 @@ import { Toaster } from 'react-hot-toast'
 import NotFound from './pages/NotFound'
 import OrderConfirmed from './pages/OrderConfirmed'
 import Orders from './pages/Orders'
+import Profile from './pages/Profile'
+import Addresses from './pages/Addresses'
+import Settings from './pages/Settings'
 
 
 
@@ -54,6 +57,9 @@ function App() {
         <Route path="/cart" element={<Cart />} />
         <Route path="/order-confirmed" element={<OrderConfirmed />} />
         <Route path="/orders" element={<Orders />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/addresses" element={<Addresses />} />
+        <Route path="/settings" element={<Settings />} />
         <Route path="/login" element={<Login />} />
         <Route path="/product/:slug" element={<ProductDetail />} />
         <Route path="*" element={<NotFound />} />

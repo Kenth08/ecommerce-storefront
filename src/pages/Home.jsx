@@ -4,51 +4,9 @@ import { getProducts } from '../api/products'
 import { getCategories } from '../api/categories'
 import ProductCard from '../components/ProductCard'
 import ProductCardSkeleton from '../components/ProductCardSkeleton'
-import Carousel from '../components/Carousel'
+import Hero from '../components/Hero'
+import CategoryGrid from '../components/CategoryGrid'
 import useDocumentTitle from '../hooks/useDocumentTitle'
-
-// Replace `bg` gradients with `image: '<banner-url>'` once real banners are ready.
-const heroSlides = [
-  {
-    bg: 'bg-gradient-to-r from-slate-900 to-slate-700',
-    title: 'Shop the Latest Essentials',
-    subtitle: 'Quality products, delivered fast.',
-    ctaLabel: 'Shop Now',
-    ctaHref: '#featured',
-  },
-  {
-    bg: 'bg-gradient-to-r from-orange-600 to-orange-400',
-    title: 'Deals You Will Love',
-    subtitle: 'Fresh arrivals at unbeatable prices.',
-    ctaLabel: 'Browse Products',
-    ctaHref: '#featured',
-  },
-  {
-    bg: 'bg-gradient-to-r from-slate-800 to-orange-700',
-    title: 'Free Shipping on Every Order',
-    subtitle: 'No minimum spend, no hidden fees.',
-    ctaLabel: 'Start Shopping',
-    ctaHref: '#featured',
-  },
-]
-
-const trustBadges = [
-  {
-    title: 'Free Shipping',
-    subtitle: 'On every order, no minimum',
-    icon: 'M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-5.25m0-11.25h1.5m-1.5 0H8.25m0 0V5.625A1.125 1.125 0 019.375 4.5h9.75c.621 0 1.125.504 1.125 1.125v.375m0 0V9m0 0h-3.375',
-  },
-  {
-    title: 'Secure Checkout',
-    subtitle: 'Your data is protected',
-    icon: 'M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
-  },
-  {
-    title: 'Easy Returns',
-    subtitle: '30-day hassle-free returns',
-    icon: 'M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99',
-  },
-]
 
 export default function Home() {
   useDocumentTitle('Home')
@@ -73,58 +31,11 @@ export default function Home() {
 
   return (
     <div>
-      <Carousel slides={heroSlides} />
+      <Hero />
 
-      {/* Trust badges */}
-      <section className="border-b border-gray-100 dark:border-slate-800">
-        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-4 py-8 sm:grid-cols-3 sm:px-8">
-          {trustBadges.map((badge) => (
-            <div key={badge.title} className="flex items-center gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-orange-100 text-orange-600 dark:bg-orange-500/15 dark:text-orange-400">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.6} stroke="currentColor" className="h-6 w-6">
-                  <path strokeLinecap="round" strokeLinejoin="round" d={badge.icon} />
-                </svg>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{badge.title}</p>
-                <p className="text-xs text-gray-500 dark:text-slate-400">{badge.subtitle}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Shop by category — placed high, like a storefront's primary nav */}
+      {/* Shop by category — Shopee-style image grid, placed high like a storefront's primary nav */}
       {!loading && !error && categories.length > 0 && (
-        <section className="mx-auto max-w-6xl px-4 pt-12 sm:px-8 sm:pt-16">
-          <div className="mb-5 flex items-end justify-between">
-            <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl dark:text-slate-100">Shop by Category</h2>
-            <Link
-              to="/shop"
-              className="shrink-0 text-sm font-semibold text-orange-600 transition-colors hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300"
-            >
-              View all →
-            </Link>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {/* "All" chip — filled, like the Shop page's default filter */}
-            <Link
-              to="/shop"
-              className="rounded-full border border-orange-500 bg-orange-500 px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-orange-600"
-            >
-              All
-            </Link>
-            {categories.map((cat) => (
-              <Link
-                key={cat.id}
-                to={`/shop?category=${cat.id}`}
-                className="rounded-full border border-gray-300 bg-white px-4 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:border-orange-400 hover:text-orange-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-orange-400 dark:hover:text-orange-400"
-              >
-                {cat.name}
-              </Link>
-            ))}
-          </div>
-        </section>
+        <CategoryGrid categories={categories} />
       )}
 
       {/* Featured products */}

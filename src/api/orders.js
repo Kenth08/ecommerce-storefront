@@ -23,24 +23,24 @@ export function checkout(itemIds) {
 }
 
 /**
- * Order history.
- *
- * ASSUMED endpoint + shape — CONFIRM WITH BACKEND, then adjust mapOrder below.
- * Expected: GET /orders/ -> [{ id, status, total, created_at, items: [...] }]
- * Each item mirrors a cart item (variant nested, snake_case).
- * The mapper is defensive: missing fields become sensible defaults rather
- * than crashing the page.
+ * Order history — GET /api/v1/orders/ (bare array, JWT auth).
+ * Confirmed against the backend schema:
+ *   Order:     { id, status, total, created_at, items: [OrderItem] }
+ *   OrderItem: { id, product_name, variant_sku, price, quantity }
+ * The backend sends a unit `price` + `quantity`, so we derive the line total.
+ * The mapper stays defensive: a missing field degrades to a safe default
+ * rather than crashing the page.
  */
 function mapOrderItem(item) {
-  const v = item.variant ?? {}
+  const price = Number(item.price ?? 0)
+  const quantity = item.quantity ?? 1
   return {
     id: item.id,
-    variantId: v.id ?? null,
-    size: v.size ?? null,
-    color: v.color ?? null,
-    name: item.product_name ?? v.product_name ?? 'Product',
-    quantity: item.quantity ?? 1,
-    lineTotal: Number(item.line_total ?? 0),
+    name: item.product_name ?? 'Product',
+    sku: item.variant_sku ?? null,
+    price,
+    quantity,
+    lineTotal: price * quantity,
   }
 }
 
