@@ -96,10 +96,10 @@ export default function Hero() {
             window edges so the WHOLE logo always sits on-screen in the side
             gutters; the wrapper clips any overflow so they never add scroll. */}
         <div className="pointer-events-none absolute left-4 top-1/2 z-0 hidden -translate-y-1/2 xl:block 2xl:left-12" aria-hidden="true">
-          <img src="/images/side-logo.png" alt="" className="w-28 opacity-90 animate-float 2xl:w-36" />
+          <img src="/images/side-logo.png" alt="" className="w-40 opacity-90 animate-float 2xl:w-52" />
         </div>
-        <div className="pointer-events-none absolute right-4 top-1/2 z-0 hidden -translate-y-1/2 scale-x-[-1] xl:block 2xl:right-12" aria-hidden="true">
-          <img src="/images/side-logo.png" alt="" className="w-28 opacity-90 animate-float 2xl:w-36" style={{ animationDelay: '-3s' }} />
+        <div className="pointer-events-none absolute right-4 top-1/2 z-0 hidden -translate-y-1/2 xl:block 2xl:right-12" aria-hidden="true">
+          <img src="/images/side-new-logo.png" alt="" className="w-40 opacity-90 animate-float 2xl:w-52" style={{ animationDelay: '-3s' }} />
         </div>
 
         <section className="relative z-10 mx-auto max-w-6xl px-4 pt-6 sm:px-8">
