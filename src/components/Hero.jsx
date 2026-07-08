@@ -87,21 +87,36 @@ const stats = [
 export default function Hero() {
   return (
     <>
-      {/* Hero promo: main carousel (≈⅔) + two stacked promo cards (≈⅓) */}
-      <section className="mx-auto max-w-6xl px-4 pt-6 sm:px-8">
-        <div className="grid gap-4 lg:grid-cols-3">
-          {/* Main carousel */}
-          <div className="h-70 sm:h-80 lg:col-span-2 lg:h-100">
-            <PromoCarousel />
-          </div>
-          {/* Right promo cards: side-by-side on mobile/tablet, stacked on desktop */}
-          <div className="grid grid-cols-2 gap-4 lg:flex lg:flex-col">
-            {promoCards.map((card) => (
-              <PromoCard key={card.title} card={card} />
-            ))}
-          </div>
+      {/* Hero promo: main carousel (≈⅔) + two stacked promo cards (≈⅓).
+          The wrapper is full-width and clips the x-axis so the decorative side
+          logos can sit in the margins without ever adding a horizontal scroll. */}
+      <div className="relative overflow-x-clip">
+        {/* Decorative Ecomify side logos — desktop only, behind the content, and
+            never clickable. Positioned with a small positive inset from the
+            window edges so the WHOLE logo always sits on-screen in the side
+            gutters; the wrapper clips any overflow so they never add scroll. */}
+        <div className="pointer-events-none absolute left-4 top-1/2 z-0 hidden -translate-y-1/2 xl:block 2xl:left-12" aria-hidden="true">
+          <img src="/images/side-logo.png" alt="" className="w-28 opacity-90 animate-float 2xl:w-36" />
         </div>
-      </section>
+        <div className="pointer-events-none absolute right-4 top-1/2 z-0 hidden -translate-y-1/2 scale-x-[-1] xl:block 2xl:right-12" aria-hidden="true">
+          <img src="/images/side-logo.png" alt="" className="w-28 opacity-90 animate-float 2xl:w-36" style={{ animationDelay: '-3s' }} />
+        </div>
+
+        <section className="relative z-10 mx-auto max-w-6xl px-4 pt-6 sm:px-8">
+          <div className="grid gap-4 lg:grid-cols-3">
+            {/* Main carousel */}
+            <div className="h-70 sm:h-80 lg:col-span-2 lg:h-100">
+              <PromoCarousel />
+            </div>
+            {/* Right promo cards: side-by-side on mobile/tablet, stacked on desktop */}
+            <div className="grid grid-cols-2 gap-4 lg:flex lg:flex-col">
+              {promoCards.map((card) => (
+                <PromoCard key={card.title} card={card} />
+              ))}
+            </div>
+          </div>
+        </section>
+      </div>
 
       {/* Stats / trust strip */}
       <motion.section

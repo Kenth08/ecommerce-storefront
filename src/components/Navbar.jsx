@@ -9,6 +9,7 @@ import toast from 'react-hot-toast'
 import logoIcon from '../assets/logo-icon.png'
 import ThemeToggle from './ThemeToggle'
 import AccountMenu from './AccountMenu'
+import SearchBox from './SearchBox'
 
 // Account links shared by the desktop dropdown and the mobile menu.
 const ACCOUNT_LINKS = [
@@ -25,16 +26,6 @@ export default function Navbar() {
   const { bump, registerTarget } = useFly()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
-  const [search, setSearch] = useState('')
-
-  // Frontend search: route to the Shop page with ?q=, which filters the
-  // existing products array. Later this can call GET /api/products?search=.
-  function handleSearch(e) {
-    e.preventDefault()
-    const q = search.trim()
-    setOpen(false)
-    navigate(q ? `/shop?q=${encodeURIComponent(q)}` : '/shop')
-  }
 
   // The nav heart/cart icons are the fly-animation targets.
   const heartRef = useRef(null)
@@ -128,26 +119,7 @@ export default function Navbar() {
         </NavLink>
 
         {/* Product search — desktop only (mobile lives in the menu below) */}
-        <form onSubmit={handleSearch} className="relative hidden flex-1 items-center md:flex md:max-w-xs lg:max-w-sm">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.8}
-            stroke="currentColor"
-            className="pointer-events-none absolute left-3 h-4 w-4 text-slate-400"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-          </svg>
-          <input
-            type="search"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search products..."
-            aria-label="Search products"
-            className="w-full rounded-lg border border-slate-700 bg-slate-800/70 py-1.5 pl-9 pr-3 text-sm text-white placeholder:text-slate-400 outline-none transition-colors focus:border-orange-500"
-          />
-        </form>
+        <SearchBox className="hidden flex-1 md:flex md:max-w-xs lg:max-w-sm" />
 
         <button
           onClick={() => setOpen(!open)}
@@ -225,26 +197,7 @@ export default function Navbar() {
       {open && (
         <div className="flex flex-col gap-3 border-t border-slate-800 px-4 py-4 text-sm sm:hidden">
           {/* Product search — mobile */}
-          <form onSubmit={handleSearch} className="relative flex items-center">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.8}
-              stroke="currentColor"
-              className="pointer-events-none absolute left-3 h-4 w-4 text-slate-400"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-            </svg>
-            <input
-              type="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search products..."
-              aria-label="Search products"
-              className="w-full rounded-lg border border-slate-700 bg-slate-800/70 py-2 pl-9 pr-3 text-sm text-white placeholder:text-slate-400 outline-none transition-colors focus:border-orange-500"
-            />
-          </form>
+          <SearchBox onNavigate={() => setOpen(false)} />
 
           <NavLink to="/" className={linkClass} onClick={() => setOpen(false)}>Home</NavLink>
           <NavLink to="/shop" className={linkClass} onClick={() => setOpen(false)}>Shop</NavLink>

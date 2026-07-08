@@ -4,6 +4,7 @@ import { getAllProducts } from '../api/products'
 import { getCategories } from '../api/categories'
 import { getStartingPrice, getActiveVariants } from '../utils/productHelpers'
 import { getRating } from '../utils/rating'
+import { searchProducts } from '../utils/search'
 import ProductCard from '../components/ProductCard'
 import ProductCardSkeleton from '../components/ProductCardSkeleton'
 import CategoryGrid from '../components/CategoryGrid'
@@ -82,7 +83,6 @@ export default function Shop() {
   }, [])
 
   const visibleProducts = useMemo(() => {
-    const search = query.trim().toLowerCase()
     const min = priceMin === '' ? null : Number(priceMin)
     const max = priceMax === '' ? null : Number(priceMax)
 
@@ -92,8 +92,10 @@ export default function Shop() {
       result = result.filter((p) => p.category?.id === activeCategory)
     }
 
-    if (search) {
-      result = result.filter((p) => p.name.toLowerCase().includes(search))
+    // Relevance search over name + category + description, best match first.
+    // (Same scorer as the navbar dropdown, so the grid matches the suggestions.)
+    if (query.trim()) {
+      result = searchProducts(result, query)
     }
 
     if (min != null) result = result.filter((p) => (getStartingPrice(p) ?? 0) >= min)
