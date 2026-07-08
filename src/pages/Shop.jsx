@@ -8,7 +8,71 @@ import { searchProducts } from '../utils/search'
 import ProductCard from '../components/ProductCard'
 import ProductCardSkeleton from '../components/ProductCardSkeleton'
 import CategoryGrid from '../components/CategoryGrid'
+import PromoCarousel from '../components/PromoCarousel'
 import useDocumentTitle from '../hooks/useDocumentTitle'
+
+// Shop-page promo slides — same carousel component as the home hero, but a
+// DIFFERENT set of images/copy. `image` points at a (not-yet-added) banner file
+// and gracefully falls back to an existing category photo, matching the home
+// carousel's pattern.
+const shopSlides = [
+  {
+    label: 'SEASON SALE',
+    labelClass: 'bg-orange-500 text-white',
+    badge: '-50%',
+    title: 'Up to 50% OFF',
+    subtitle: 'Deals across every category — limited time only.',
+    offer: 'While stocks last',
+    cta: 'Shop deals',
+    href: '/shop',
+    image: '/images/banners/shop-season-sale.png',
+    fallback: '/images/categories/womens-accessories.jpg',
+    objectPos: 'object-center',
+    gradient: 'from-slate-950 via-orange-950 to-black',
+  },
+  {
+    label: 'LEVEL UP',
+    labelClass: 'bg-cyan-400 text-slate-900',
+    badge: null,
+    title: 'Gaming Gear Sale',
+    subtitle: 'Consoles, controllers, and accessories for less.',
+    offer: 'New deals added daily',
+    cta: 'Shop gaming',
+    href: '/shop',
+    image: '/images/banners/shop-gaming.png',
+    fallback: '/images/categories/gaming.jpg',
+    objectPos: 'object-center',
+    gradient: 'from-slate-950 via-cyan-950 to-blue-950',
+  },
+  {
+    label: 'HOME UPGRADES',
+    labelClass: 'bg-emerald-500 text-white',
+    badge: 'NEW',
+    title: 'Appliances for Every Room',
+    subtitle: 'Save on the essentials that make home easier.',
+    offer: 'Fresh arrivals this week',
+    cta: 'Shop home',
+    href: '/shop',
+    image: '/images/banners/shop-home.png',
+    fallback: '/images/categories/home-appliances.jpg',
+    objectPos: 'object-center',
+    gradient: 'from-slate-950 via-emerald-950 to-slate-900',
+  },
+  {
+    label: 'BIG SOUND',
+    labelClass: 'bg-white text-slate-900',
+    badge: 'HOT',
+    title: 'Audio That Hits Different',
+    subtitle: 'Headphones, speakers, and earbuds on deal.',
+    offer: 'Limited-time bundles',
+    cta: 'Shop audio',
+    href: '/shop',
+    image: '/images/banners/shop-audio.png',
+    fallback: '/images/categories/audio.jpg',
+    objectPos: 'object-center',
+    gradient: 'from-slate-950 via-purple-950 to-slate-900',
+  },
+]
 
 export default function Shop() {
   useDocumentTitle('Shop All')
@@ -128,29 +192,10 @@ export default function Shop() {
 
   return (
     <div className="mx-auto max-w-6xl scroll-mt-24 px-4 py-10 sm:px-8 sm:py-14">
-      {/* Sale promo banner (same image pattern as the home banners: real path
-          first, existing project image as fallback so it's never empty). */}
-      <div className="relative mb-8 h-36 overflow-hidden rounded-2xl border border-white/10 bg-slate-950 shadow-lg sm:h-44">
-        <img
-          src="/images/banners/sale-essentials.png"
-          alt=""
-          aria-hidden="true"
-          onError={(e) => {
-            const img = e.currentTarget
-            if (img.dataset.fellBack) { img.style.display = 'none'; return }
-            img.dataset.fellBack = '1'
-            img.src = '/images/categories/mens-apparel.jpg'
-          }}
-          className="absolute inset-0 h-full w-full object-cover object-center"
-        />
-        <div className="absolute inset-0 bg-linear-to-r from-black/90 via-black/60 to-black/20" />
-        <div className="relative z-10 flex h-full max-w-md flex-col items-start justify-center gap-1.5 px-6 sm:px-10">
-          <span className="rounded-full bg-orange-500 px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-white shadow-sm">
-            Season Sale
-          </span>
-          <h2 className="text-2xl font-extrabold leading-tight text-white drop-shadow sm:text-3xl">Up to 50% OFF</h2>
-          <p className="text-sm text-white/85">Deals across every category — limited time only.</p>
-        </div>
+      {/* Promo carousel — same component as the home hero, different slides.
+          Tall enough that the slide label/title/CTA never clip. */}
+      <div className="mb-8 h-64 sm:h-80 lg:h-96">
+        <PromoCarousel slides={shopSlides} />
       </div>
 
       <h1 className="mb-6 scroll-mt-24 text-2xl font-bold text-slate-900 sm:text-3xl dark:text-slate-100">Shop All Products</h1>

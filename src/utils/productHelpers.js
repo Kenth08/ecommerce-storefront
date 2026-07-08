@@ -7,6 +7,28 @@ export function getActiveVariants(product) {
   return product.variants?.filter((v) => v.is_active) ?? []
 }
 
+/**
+ * Units sold for a product. Prefers a real backend field; otherwise derives a
+ * STABLE pseudo count from the id — same placeholder approach as getRating, so
+ * a "Top Products" list looks like a real bestseller ranking without flickering.
+ * TODO(backend): return `product.sold_count` directly once the API exposes it.
+ */
+export function getSoldCount(product) {
+  const real = Number(product?.sold_count ?? product?.units_sold ?? product?.sold)
+  if (Number.isFinite(real) && real > 0) return real
+  const seed = Number(product?.id)
+  if (!Number.isFinite(seed) || seed <= 0) return 0
+  // Spread ~120 – 20k so the ranking reads like a populated storefront.
+  return 120 + ((seed * 977) % 19880)
+}
+
+// Compact number for badges/labels, e.g. 12480 -> "12.5k", 308000 -> "308k".
+export function formatCompact(value) {
+  const n = Number(value) || 0
+  if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k`
+  return String(n)
+}
+
 export function getStartingPrice(product) {
   const variants = getActiveVariants(product)
   if (variants.length === 0) return null

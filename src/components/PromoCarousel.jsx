@@ -10,7 +10,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 // exist, `fallback` shows an existing project image so the banner stays filled —
 // swap in real art later with zero code changes. `object-cover` + `objectPos`
 // keeps images filling the frame without stretching.
-const slides = [
+const defaultSlides = [
   {
     label: 'LIMITED OFFER',
     labelClass: 'bg-orange-500 text-white',
@@ -92,14 +92,13 @@ const variants = {
   exit: (dir) => ({ x: dir >= 0 ? '-100%' : '100%', opacity: 0 }),
 }
 
-const mod = (n) => ((n % slides.length) + slides.length) % slides.length
-
-export default function PromoCarousel() {
+export default function PromoCarousel({ slides = defaultSlides }) {
   // index can run past the array length; `mod` maps it back. dir drives the
   // slide direction for Framer.
   const [[index, dir], setState] = useState([0, 0])
   const hovering = useRef(false)
 
+  const mod = (n) => ((n % slides.length) + slides.length) % slides.length
   const active = mod(index)
   const slide = slides[active]
 
@@ -127,7 +126,7 @@ export default function PromoCarousel() {
     <section
       onMouseEnter={() => (hovering.current = true)}
       onMouseLeave={() => (hovering.current = false)}
-      className="relative h-full w-full overflow-hidden rounded-2xl border border-white/10 bg-slate-950 shadow-lg"
+      className="group relative h-full w-full overflow-hidden rounded-2xl border border-white/10 bg-slate-950 shadow-lg"
       aria-roledescription="carousel"
       aria-label="Promotions"
     >
@@ -208,7 +207,7 @@ export default function PromoCarousel() {
       <button
         onClick={() => paginate(-1)}
         aria-label="Previous slide"
-        className="absolute left-3 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur transition-colors hover:bg-black/60 sm:left-5 sm:flex"
+        className="absolute left-3 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white opacity-0 backdrop-blur transition-all duration-200 hover:bg-black/60 focus-visible:opacity-100 group-hover:opacity-100 sm:left-5 sm:flex"
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-5 w-5">
           <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
@@ -217,7 +216,7 @@ export default function PromoCarousel() {
       <button
         onClick={() => paginate(1)}
         aria-label="Next slide"
-        className="absolute right-3 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur transition-colors hover:bg-black/60 sm:right-5 sm:flex"
+        className="absolute right-3 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white opacity-0 backdrop-blur transition-all duration-200 hover:bg-black/60 focus-visible:opacity-100 group-hover:opacity-100 sm:right-5 sm:flex"
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-5 w-5">
           <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />

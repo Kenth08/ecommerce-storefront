@@ -2,19 +2,16 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { useCart } from '../context/CartContext'
-import { useAuth } from '../context/AuthContext'
-import { checkout } from '../api/orders'
 import useDocumentTitle from '../hooks/useDocumentTitle'
 
 const PAYMENTS = ['COD', 'GCash', 'Card', 'PayPal']
+const SELECTION_KEY = 'checkoutSelection'
 
 export default function Cart() {
   useDocumentTitle('Your Cart')
-  const { items, removeFromCart, increaseQuantity, decreaseQuantity, refreshCart, flushCart } = useCart()
-  const { user } = useAuth()
+  const { items, removeFromCart, increaseQuantity, decreaseQuantity, flushCart } = useCart()
   const navigate = useNavigate()
   const location = useLocation()
-  const [placingOrder, setPlacingOrder] = useState(false)
   const [voucher, setVoucher] = useState('')
 
   // Track UNSELECTED lines (by variantId). Empty set = everything selected,
@@ -64,46 +61,20 @@ export default function Cart() {
     toast('That code isn’t valid right now.', { id: 'voucher' })
   }
 
+  // Proceed to the dedicated /checkout page with ONLY the selected lines.
+  // The checkout page itself gates on login and creates the order.
   async function handleCheckout() {
-    // Checkout runs against the server cart, which only exists once logged in.
-    if (!user) {
-      toast('Please log in to check out.')
-      navigate('/login')
-      return
-    }
     if (selectedCount === 0) return
-    setPlacingOrder(true)
+    // Sync any debounced quantity writes so the server cart matches the UI
+    // before checkout reads it. (No-op for guests.)
     try {
-      await flushCart() // make sure any debounced +/- writes land before we order
-      // Order only the selected lines (backend must honor item_ids; see orders.js).
-      const selectedIds = selectedItems.map((i) => i.itemId).filter(Boolean)
-      const data = await checkout(selectedIds)
-      // Preferred path: backend returns a Stripe Checkout Session URL. Hand the
-      // browser off to Stripe's hosted payment page. Stripe then redirects to
-      // success_url (/order-confirmed) on payment, or cancel_url (/cart) if
-      // abandoned — so we do NOT navigate or show "order placed" ourselves here.
-      const stripeUrl = data?.url || data?.checkout_url || data?.session_url
-      if (stripeUrl) {
-        window.location.assign(stripeUrl)
-        return
-      }
-      // Fallback: no payment URL yet (endpoint still returns no body) — behave
-      // as a direct order placement, the previous behavior.
-      await refreshCart() // cart is emptied server-side after a successful order
-      toast.success('Order placed!')
-      navigate('/order-confirmed')
-    } catch (err) {
-      // Surface the backend's real reason (empty cart, out of stock, auth, …)
-      // instead of a generic message, so failures are diagnosable.
-      const data = err.response?.data
-      const detail =
-        data?.detail || data?.error || data?.message ||
-        (typeof data === 'string' ? data : null)
-      console.error('Checkout failed:', err.response?.status, data ?? err.message)
-      toast.error(detail || 'Could not place your order. Please try again.')
-    } finally {
-      setPlacingOrder(false)
+      await flushCart()
+    } catch {
+      /* non-fatal */
     }
+    // Persist the selection so /checkout can restore it (survives refresh).
+    localStorage.setItem(SELECTION_KEY, JSON.stringify(selectedItems.map((i) => i.variantId)))
+    navigate('/checkout')
   }
 
   // ---- Empty cart ---------------------------------------------------------
@@ -304,14 +275,10 @@ export default function Cart() {
 
             <button
               onClick={handleCheckout}
-              disabled={placingOrder || selectedCount === 0}
+              disabled={selectedCount === 0}
               className="mt-5 w-full rounded-lg bg-orange-500 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {placingOrder
-                ? 'Placing order…'
-                : selectedCount === 0
-                  ? 'Select items to check out'
-                  : `Proceed to checkout (${selectedCount})`}
+              {selectedCount === 0 ? 'Select items to check out' : `Proceed to checkout (${selectedCount})`}
             </button>
 
             <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-gray-500 dark:text-slate-400">

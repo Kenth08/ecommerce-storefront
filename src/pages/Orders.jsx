@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getOrders } from '../api/orders'
+import { getMockOrders } from '../api/mockOrders'
 import { useAuth } from '../context/AuthContext'
 import OrderCard from '../components/OrderCard'
 import useDocumentTitle from '../hooks/useDocumentTitle'
@@ -33,22 +34,41 @@ export default function Orders() {
     return statuses ? orders.filter((o) => statuses.includes(o.status)) : orders
   }, [orders, activeFilter])
 
-  // Orders live on the server and require auth — bounce guests to login.
+  // Orders require auth — bounce guests to login. We merge locally-placed
+  // (mock) orders with the real server history so both show in one list.
+  // TODO(backend): once real orders persist, the local merge can be removed.
   useEffect(() => {
     if (!user) {
       navigate('/login')
       return
     }
-    getOrders()
-      .then(setOrders)
-      .catch((err) => {
+    let cancelled = false
+    async function load() {
+      const mock = await getMockOrders().catch(() => [])
+      try {
+        const real = await getOrders()
+        if (!cancelled) setOrders([...mock, ...real])
+      } catch (err) {
         const status = err.response?.status
         console.error('Load orders failed:', status, err.response?.data ?? err.message)
-        // 404/501 => the order-history endpoint isn't implemented yet.
-        if (status === 404 || status === 501) setUnavailable(true)
-        else setError('Could not load your orders. Please try again.')
-      })
-      .finally(() => setLoading(false))
+        if (cancelled) return
+        // 404/501 => the real order-history endpoint isn't implemented yet.
+        if (status === 404 || status === 501) {
+          setOrders(mock)
+          if (mock.length === 0) setUnavailable(true)
+        } else if (mock.length > 0) {
+          setOrders(mock) // still show local orders on a transient failure
+        } else {
+          setError('Could not load your orders. Please try again.')
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+    load()
+    return () => {
+      cancelled = true
+    }
   }, [user, navigate])
 
   if (loading) {

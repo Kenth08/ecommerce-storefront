@@ -6,6 +6,7 @@ import ProductCard from '../components/ProductCard'
 import ProductCardSkeleton from '../components/ProductCardSkeleton'
 import Hero from '../components/Hero'
 import CategoryGrid from '../components/CategoryGrid'
+import TopProducts from '../components/TopProducts'
 import useDocumentTitle from '../hooks/useDocumentTitle'
 
 export default function Home() {
@@ -36,6 +37,11 @@ export default function Home() {
       {/* Shop by category — Shopee-style image grid, placed high like a storefront's primary nav */}
       {!loading && !error && categories.length > 0 && (
         <CategoryGrid categories={categories} />
+      )}
+
+      {/* Top products — Shopee-style best-seller ranking */}
+      {!loading && !error && products.length > 0 && (
+        <TopProducts products={products} />
       )}
 
       {/* Featured products */}

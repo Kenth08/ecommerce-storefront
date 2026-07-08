@@ -14,14 +14,28 @@ const Shop = lazy(() => import('./pages/Shop'))
 const ProductDetail = lazy(() => import('./pages/ProductDetail'))
 const Wishlist = lazy(() => import('./pages/Wishlist'))
 const Cart = lazy(() => import('./pages/Cart'))
+const Checkout = lazy(() => import('./pages/Checkout'))
 const OrderConfirmed = lazy(() => import('./pages/OrderConfirmed'))
 const Orders = lazy(() => import('./pages/Orders'))
+const OrderDetail = lazy(() => import('./pages/OrderDetail'))
 const Profile = lazy(() => import('./pages/Profile'))
 const Addresses = lazy(() => import('./pages/Addresses'))
 const Settings = lazy(() => import('./pages/Settings'))
 const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
+const ResetPassword = lazy(() => import('./pages/ResetPassword'))
+const EmailVerification = lazy(() => import('./pages/EmailVerification'))
+const Help = lazy(() => import('./pages/Help'))
+const Shipping = lazy(() => import('./pages/Shipping'))
+const Returns = lazy(() => import('./pages/Returns'))
+const Contact = lazy(() => import('./pages/Contact'))
+const Privacy = lazy(() => import('./pages/Privacy'))
+const Terms = lazy(() => import('./pages/Terms'))
 const NotFound = lazy(() => import('./pages/NotFound'))
+
+// Full-screen standalone pages — no site navbar/footer.
+const CHROMELESS_PATHS = ['/login', '/register', '/forgot-password', '/reset-password', '/email-verification']
 
 function PageLoader() {
   return (
@@ -34,7 +48,7 @@ function PageLoader() {
 function App() {
   const { pathname } = useLocation()
   // Auth pages are full-screen standalone — no site navbar/footer.
-  const hideChrome = pathname === '/login' || pathname === '/register'
+  const hideChrome = CHROMELESS_PATHS.includes(pathname)
 
   return (
     <>
@@ -66,12 +80,23 @@ function App() {
               <Route path="/shop" element={<Shop />} />
               <Route path="/wishlist" element={<Wishlist />} />
               <Route path="/cart" element={<Cart />} />
+              <Route path="/checkout" element={<Checkout />} />
               <Route path="/order-confirmed" element={<OrderConfirmed />} />
               <Route path="/orders" element={<Orders />} />
+              <Route path="/orders/:id" element={<OrderDetail />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/addresses" element={<Addresses />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/email-verification" element={<EmailVerification />} />
+              <Route path="/help" element={<Help />} />
+              <Route path="/shipping" element={<Shipping />} />
+              <Route path="/returns" element={<Returns />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/terms" element={<Terms />} />
               <Route path="/product/:slug" element={<ProductDetail />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

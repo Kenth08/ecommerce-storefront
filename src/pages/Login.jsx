@@ -149,15 +149,20 @@ export default function Login() {
             {fieldErrors.password && <p className="mt-1 text-xs text-red-600">{fieldErrors.password}</p>}
           </div>
 
-          <label className="flex w-fit cursor-pointer items-center gap-2 text-sm text-gray-600">
-            <input
-              type="checkbox"
-              checked={remember}
-              onChange={(e) => setRemember(e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300 text-orange-500 focus:ring-orange-400"
-            />
-            Keep me signed in
-          </label>
+          <div className="flex items-center justify-between">
+            <label className="flex w-fit cursor-pointer items-center gap-2 text-sm text-gray-600">
+              <input
+                type="checkbox"
+                checked={remember}
+                onChange={(e) => setRemember(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-orange-500 focus:ring-orange-400"
+              />
+              Keep me signed in
+            </label>
+            <Link to="/forgot-password" className="text-sm font-medium text-orange-600 hover:text-orange-700">
+              Forgot password?
+            </Link>
+          </div>
 
           {error && <p className="text-sm text-red-600">{error}</p>}
 
