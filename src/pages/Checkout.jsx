@@ -5,6 +5,7 @@ import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { getAddresses } from '../api/addresses'
 import { createOrder } from '../api/mockOrders'
+import { checkout as serverCheckout } from '../api/orders'
 import { formatPrice } from '../utils/productHelpers'
 import useDocumentTitle from '../hooks/useDocumentTitle'
 
@@ -36,6 +37,20 @@ function readSelection() {
   } catch {
     return null
   }
+}
+
+// Pull a human-readable message out of a backend error response, so problems
+// the server reports (e.g. "Variant out of stock", "Price changed") reach the
+// shopper instead of a generic toast. Handles DRF's several error shapes.
+function serverMessage(err) {
+  const data = err?.response?.data
+  if (!data) return null
+  if (typeof data === 'string') return data
+  if (data.detail) return data.detail
+  if (data.error) return data.error
+  const first = Object.values(data)[0]
+  if (Array.isArray(first)) return first[0]
+  return typeof first === 'string' ? first : null
 }
 
 // A friendly delivery date range from today, e.g. "Jul 11 – Jul 15".
@@ -170,8 +185,40 @@ export default function Checkout() {
     setPlacing(true)
     try {
       const method = PAYMENT_METHODS.find((m) => m.id === payment)
-      // TODO(backend): create the real order + payment intent here. For now we
-      // persist a local order so the confirmation / history flow works.
+
+      // 1) Try the REAL server checkout first. It turns the server cart into an
+      //    order and either returns a Stripe hosted-checkout { url } to redirect
+      //    to, or a created order we can jump straight to the confirmation for.
+      const itemIds = selectedItems.map((it) => it.itemId).filter(Boolean)
+      try {
+        const res = await serverCheckout(itemIds)
+        if (res?.url) {
+          // Stripe hosted checkout — leave the SPA. The backend webhook marks
+          // the order paid and empties the cart; success_url returns the shopper.
+          localStorage.removeItem(SELECTION_KEY)
+          window.location.assign(res.url)
+          return
+        }
+        if (res?.id) {
+          // Server created the order directly (e.g. Cash on Delivery).
+          localStorage.removeItem(SELECTION_KEY)
+          navigate('/order-confirmed', { state: { orderId: res.id }, replace: true })
+          return
+        }
+        // No url and no id -> unexpected shape; fall through to the local order.
+      } catch (err) {
+        const status = err.response?.status
+        // Only fall back when the endpoint isn't live yet (404/501). Genuine
+        // errors — out of stock, price changed, auth — must reach the shopper.
+        if (status && status !== 404 && status !== 501) {
+          toast.error(serverMessage(err) || 'Could not place your order. Please try again.')
+          return
+        }
+        // else: endpoint not implemented yet -> use the local fallback below.
+      }
+
+      // 2) Fallback: persist a local order so the confirmation / history flow
+      //    still works end-to-end while the backend checkout is being finished.
       const order = await createOrder({
         items: selectedItems.map((it) => ({
           id: it.itemId ?? it.variantId,

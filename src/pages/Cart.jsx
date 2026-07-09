@@ -191,16 +191,16 @@ export default function Cart() {
                       <div className="inline-flex items-center rounded-lg border border-gray-300 dark:border-slate-600">
                         <button
                           onClick={() => decreaseQuantity(item.variantId)}
-                          aria-label="Decrease quantity"
-                          className="px-2.5 py-1 text-gray-600 transition-colors hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                          aria-label={`Decrease quantity of ${item.name}`}
+                          className="flex h-10 w-10 items-center justify-center text-lg leading-none text-gray-600 transition-colors hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800"
                         >
                           −
                         </button>
                         <span className="w-9 text-center text-sm font-medium text-slate-900 dark:text-slate-100">{item.quantity}</span>
                         <button
                           onClick={() => increaseQuantity(item.variantId)}
-                          aria-label="Increase quantity"
-                          className="px-2.5 py-1 text-gray-600 transition-colors hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                          aria-label={`Increase quantity of ${item.name}`}
+                          className="flex h-10 w-10 items-center justify-center text-lg leading-none text-gray-600 transition-colors hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800"
                         >
                           +
                         </button>

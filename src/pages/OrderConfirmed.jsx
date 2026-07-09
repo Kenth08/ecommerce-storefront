@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { getMockOrder, getMockOrders } from '../api/mockOrders'
+import { getOrders } from '../api/orders'
 import { formatPrice } from '../utils/productHelpers'
 import useDocumentTitle from '../hooks/useDocumentTitle'
 
@@ -13,12 +14,26 @@ export default function OrderConfirmed() {
   const location = useLocation()
   const [order, setOrder] = useState(null)
 
-  // Show the just-placed order (passed via navigation state), falling back to
-  // the most recent local order if the page is reloaded/opened directly.
+  // Show the just-placed order. It may live in the real order history (Stripe /
+  // server checkout) or in the local fallback store. Stripe's success_url is a
+  // full page load, so navigation state can be gone — then we take the newest
+  // real order. Order of preference: id in local -> id in real -> newest real
+  // -> newest local.
   useEffect(() => {
     const orderId = location.state?.orderId
     async function load() {
-      const found = orderId ? await getMockOrder(orderId) : (await getMockOrders())[0]
+      let found = orderId ? await getMockOrder(orderId) : null
+      if (!found) {
+        try {
+          const real = await getOrders()
+          found = orderId
+            ? real.find((o) => String(o.id) === String(orderId)) || null
+            : real[0] || null
+        } catch {
+          /* real history unavailable — fall back to local below */
+        }
+      }
+      if (!found && !orderId) found = (await getMockOrders())[0] || null
       setOrder(found || null)
     }
     load()
